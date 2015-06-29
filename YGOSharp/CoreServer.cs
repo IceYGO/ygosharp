@@ -32,7 +32,7 @@ namespace YGOSharp
             Game = new Game(this, Config);
             try
             {
-                _listener = new TcpListener(IPAddress.Loopback, Config.Port);
+                _listener = new TcpListener(IPAddress.Any, Config.Port);
                 _listener.Start();
                 IsRunning = true;
                 IsListening = true;
