@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.8.9)
 
 project (ocgcore)
 
-set (OCGCORE_DIR "ocgcore")
+set (OCGCORE_DIR "ygopro-core")
 
 set (OCGCORE_SRC
   ${OCGCORE_DIR}/card.cpp
@@ -110,6 +110,8 @@ endif()
 include_directories (
   ${LUA_DIR}
 )
+
+add_definitions(-DLUA_COMPAT_5_2)
 
 add_library (ocgcore SHARED
   ${OCGCORE_SRC}
