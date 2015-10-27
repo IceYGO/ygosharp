@@ -76,15 +76,19 @@ namespace YGOSharp
             }
             if (!_disconnected)
             {
+#if !DEBUG
                 try
                 {
+#endif
                     NetworkParse();
+#if !DEBUG
                 }
                 catch (Exception ex)
                 {
                     File.WriteAllText("error_" + DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss") + ".txt", ex.ToString());
                     _disconnected = true;
                 }
+#endif
             }
             if (_disconnected)
             {
