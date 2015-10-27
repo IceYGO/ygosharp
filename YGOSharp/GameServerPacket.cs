@@ -34,6 +34,11 @@ namespace YGOSharp
             _writer.Write(array);
         }
 
+        public void Write(byte[] array, int index, int count)
+        {
+            _writer.Write(array, index, count);
+        }
+
         public void Write(bool value)
         {
             _writer.Write((byte)(value ? 1 : 0));

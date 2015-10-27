@@ -622,14 +622,25 @@ namespace YGOSharp
             RefreshHand(1);
         }
 
-        public void RefreshMonsters(int player, int flag = 0x81fff, bool useCache = true)
+        public void RefreshAllObserver(Player observer)
+        {
+            RefreshMonsters(0, useCache: false, observer: observer);
+            RefreshMonsters(1, useCache: false, observer: observer);
+            RefreshSpells(0, useCache: false, observer: observer);
+            RefreshSpells(1, useCache: false, observer: observer);
+            RefreshHand(0, useCache: false, observer: observer);
+            RefreshHand(1, useCache: false, observer: observer);
+        }
+
+        public void RefreshMonsters(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, useCache);
             GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
             update.Write(result);
-            SendToTeam(update, player);
+            if (observer == null)
+                SendToTeam(update, player);
 
             update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
@@ -653,18 +664,26 @@ namespace YGOSharp
             }
             update.Write(result);
 
-            SendToTeam(update, 1 - player);
-            SendToObservers(update);
+            if (observer == null)
+            {
+                SendToTeam(update, 1 - player);
+                SendToObservers(update);
+            }
+            else
+            {
+                observer.Send(update);
+            }
         }
 
-        public void RefreshSpells(int player, int flag = 0x681fff, bool useCache = true)
+        public void RefreshSpells(int player, int flag = 0x681fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, useCache);
             GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
             update.Write(result);
-            SendToTeam(update, player);
+            if (observer == null)
+                SendToTeam(update, player);
 
             update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
@@ -688,18 +707,26 @@ namespace YGOSharp
             }
             update.Write(result);
 
-            SendToTeam(update, 1 - player);
-            SendToObservers(update);
+            if (observer == null)
+            {
+                SendToTeam(update, 1 - player);
+                SendToObservers(update);
+            }
+            else
+            {
+                observer.Send(update);
+            }
         }
 
-        public void RefreshHand(int player, int flag = 0x181fff, bool useCache = true)
+        public void RefreshHand(int player, int flag = 0x181fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, useCache);
             GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
             update.Write(result);
-            CurPlayers[player].Send(update);
+            if (observer == null)
+                CurPlayers[player].Send(update);
 
             update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
@@ -723,17 +750,23 @@ namespace YGOSharp
             }
             update.Write(result);
 
-            SendToAllBut(update, player);
+            if (observer == null)
+                SendToAllBut(update, player);
+            else
+                observer.Send(update);
         }
 
-        public void RefreshGrave(int player, int flag = 0x81fff, bool useCache = true)
+        public void RefreshGrave(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, useCache);
             GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
             update.Write(result);
-            SendToAll(update);
+            if (observer == null)
+                SendToAll(update);
+            else
+                observer.Send(update);
         }
 
         public void RefreshExtra(int player, int flag = 0x81fff, bool useCache = true)
@@ -1118,36 +1151,16 @@ namespace YGOSharp
 
         private void InitNewSpectator(Player player)
         {
-            int deck1 = _duel.QueryFieldCount(0, CardLocation.Deck);
-            int deck2 = _duel.QueryFieldCount(1, CardLocation.Deck);
-
-            int hand1 = _duel.QueryFieldCount(0, CardLocation.Hand);
-            int hand2 = _duel.QueryFieldCount(1, CardLocation.Hand);
-
             GameServerPacket packet = new GameServerPacket(GameMessage.Start);
             packet.Write((byte)(_swapped ? 0x11 : 0x10));
             packet.Write(LifePoints[0]);
             packet.Write(LifePoints[1]);
-            packet.Write((short)(deck1 + hand1));
-            packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Extra));
-            packet.Write((short)(deck2 + hand2));
-            packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Extra));
+            packet.Write((short)0); // deck
+            packet.Write((short)0); // extra
+            packet.Write((short)0); // deck
+            packet.Write((short)0);  // extra
             player.Send(packet);
-
-            GameServerPacket draw = new GameServerPacket(GameMessage.Draw);
-            draw.Write((byte)0);
-            draw.Write((byte)hand1);
-            for (int i = 0; i < hand1; i++)
-                draw.Write(0);
-            player.Send(draw);
             
-            draw = new GameServerPacket(GameMessage.Draw);
-            draw.Write((byte)1);
-            draw.Write((byte)hand2);
-            for (int i = 0; i < hand2; i++)
-                draw.Write(0);
-            player.Send(draw);
-
             GameServerPacket turn = new GameServerPacket(GameMessage.NewTurn);
             turn.Write((byte)0);
             player.Send(turn);
@@ -1158,10 +1171,12 @@ namespace YGOSharp
                 player.Send(turn);
             }
 
-            InitSpectatorLocation(player, CardLocation.MonsterZone);
-            InitSpectatorLocation(player, CardLocation.SpellZone);
-            InitSpectatorLocation(player, CardLocation.Grave);
-            InitSpectatorLocation(player, CardLocation.Removed);
+            GameServerPacket reload = new GameServerPacket(GameMessage.ReloadField);
+            byte[] fieldInfo = _duel.QueryFieldInfo();
+            reload.Write(fieldInfo, 1, fieldInfo.Length - 1);
+            player.Send(reload);
+
+            RefreshAllObserver(player);
         }
 
         private void InitSpectatorLocation(Player player, CardLocation loc)
