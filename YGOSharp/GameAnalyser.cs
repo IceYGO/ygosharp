@@ -700,12 +700,17 @@ namespace YGOSharp
 
             int player = msg.Reader.ReadByte();
             packet.Write((byte)player);
-            packet.Write(msg.Reader.ReadBytes(2));
-            int count = msg.Reader.ReadByte();
-            packet.Write((byte)count);
-            packet.Write(msg.Reader.ReadBytes(4));
 
-            for (int i = 0; i < count; i++)
+            packet.Write(msg.Reader.ReadByte()); // mcount
+            int ecount = msg.Reader.ReadByte();
+            packet.Write((byte)ecount);
+            packet.Write(msg.Reader.ReadByte()); // pcount
+            int hcount = msg.Reader.ReadByte();
+            packet.Write((byte)hcount);
+
+            packet.Write(msg.Reader.ReadBytes(4)); // topcode
+
+            for (int i = 0; i < hcount + ecount; i++)
             {
                 uint code = msg.Reader.ReadUInt32();
                 if ((code & 0x80000000) != 0)

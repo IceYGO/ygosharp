@@ -9,7 +9,7 @@ namespace YGOSharp
 {
     public class Program
     {
-        public const int ProVersion = 0x1335;
+        public const int ProVersion = 0x1337;
 
         public static void Main(string[] args)
         {
