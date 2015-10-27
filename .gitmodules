@@ -1,3 +1,7 @@
 [submodule "OCGCore/ygopro-core"]
 	path = OCGCore/ygopro-core
 	url = https://github.com/Fluorohydride/ygopro-core/
+[submodule "OCGCore/lua"]
+	path = OCGCore/lua
+	url = https://github.com/lua/lua/
+	branch = 5.3.0

@@ -40,7 +40,7 @@ set (OCGCORE_SRC
   ${OCGCORE_DIR}/scriptlib.h
 )
 
-set (LUA_DIR "lua-5.3.0")
+set (LUA_DIR "lua/src")
 
 set (LUA_SRC
   ${LUA_DIR}/lapi.c
