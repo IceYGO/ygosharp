@@ -23,7 +23,7 @@ namespace YGOSharp
                     return;
 
                 BanlistManager.Init(config.BanlistFile);
-                Api.Init();
+                Api.Init(config.Path, config.ScriptFolder, config.CardCDB);
 
                 CoreServer server = new CoreServer(config);
                 server.Start();
