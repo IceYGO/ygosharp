@@ -109,6 +109,14 @@ namespace OCGWrapper
             return result;
         }
 
+        public byte[] QueryFieldInfo()
+        {
+            Api.query_field_info(_duelPtr,  _buffer);
+            byte[] result = new byte[256];
+            Marshal.Copy(_buffer, result, 0, 256);
+            return result;
+        }
+
         public void End()
         {
             Api.end_duel(_duelPtr);
