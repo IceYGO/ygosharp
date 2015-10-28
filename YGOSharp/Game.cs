@@ -1051,8 +1051,28 @@ namespace YGOSharp
                     TimeSpan elapsed = DateTime.UtcNow - _time.Value;
                     if ((int)elapsed.TotalSeconds > _timelimit[_lastresponse])
                     {
-                        Surrender(Players[_lastresponse], 3);
-                    }
+                        if (_analyser.LastMessage == GameMessage.SelectIdleCmd ||
+                            _analyser.LastMessage == GameMessage.SelectBattleCmd)
+                        {
+                            
+                                if (Players[_lastresponse].TurnSkip == 2)
+                                {
+                                    Surrender(Players[_lastresponse], 3);
+                                }
+                                else
+                                {
+                                    Players[_lastresponse].State = PlayerState.None;
+                                    Players[_lastresponse].TurnSkip++;
+                                    SetResponse(_analyser.LastMessage == GameMessage.SelectIdleCmd ? 7 : 3);
+                                    Process();
+                                }
+                            }
+                            else
+                                Surrender(Players[_lastresponse], 3);
+                        }
+                        else if (elapsed.TotalSeconds > _timelimit[_lastresponse] + 30)
+                            Surrender(Players[_lastresponse], 3);
+                    
                 }
             }
 

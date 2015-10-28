@@ -24,7 +24,7 @@ namespace YGOSharp
         public string CardCDB { get; private set; }
         public string BanlistFile { get; private set; }
         public bool Log { get; private set; }
-        public bool AutoEndTurn { get; private set; }
+        //public bool AutoEndTurn { get; private set; } enabling functionality by default. Its "nice".
         public int ClientVersion { get; private set; }
         public bool STDOUT { get; private set; }
         public int MainCountMax { get; private set; }
@@ -68,10 +68,6 @@ namespace YGOSharp
                                 break;
                             case "errorlog":
                                 Log = Convert.ToBoolean(value);
-                                break;
-
-                            case "autoendturn":
-                                AutoEndTurn = Convert.ToBoolean(value);
                                 break;
                             case "clientversion":
                                 ClientVersion = Convert.ToInt32(value, 16);
