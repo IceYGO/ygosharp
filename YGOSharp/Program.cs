@@ -19,10 +19,10 @@ namespace YGOSharp
 #endif
 
                 CoreConfig config = new CoreConfig();
-                if (args.Length != 2 || !config.Load(args[0], args[1]))
+                if (args.Length != 2 || !config.Load(args[0], args[1], args[2]))
                     return;
 
-                BanlistManager.Init("lflist.conf");
+                BanlistManager.Init(config.BanlistFile);
                 Api.Init();
 
                 CoreServer server = new CoreServer(config);
