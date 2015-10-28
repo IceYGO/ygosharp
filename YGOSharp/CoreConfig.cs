@@ -1,4 +1,8 @@
-﻿namespace YGOSharp
+﻿using System.IO;
+using System;
+using System.Globalization;
+
+namespace YGOSharp
 {
     public class CoreConfig
     {
@@ -14,11 +18,86 @@
         public int StartHand { get; private set; }
         public int DrawCount { get; private set; }
         public int GameTimer { get; private set; }
-        public int Port { get; private set; }
+        public int Port { get;  set; }
+        public string Path { get; private set; }
+        public string ScriptFolder { get; private set; }
+        public string CardCDB { get; private set; }
+        public string BanlistFile { get; private set; }
+        public bool Log { get; private set; }
+        //public bool AutoEndTurn { get; private set; } enabling functionality by default. Its "nice".
+        public int ClientVersion { get; private set; }
+        public bool STDOUT { get; private set; }
+        public int MainCountMax { get; private set; }
+        public int MainCountMin { get; private set; }
+        public int ExtraCount { get; private set; }
 
-        public bool Load(string name, string portText)
+        public bool Load(string name, string portText, string file)
         {
-            if (name.Length < 3)
+            if (File.Exists(file))
+            {
+                StreamReader reader = null;
+                try
+                {
+                    reader = new StreamReader(File.OpenRead(file));
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (line == null) continue;
+                        line = line.Trim();
+                        if (line.Equals(string.Empty)) continue;
+                        if (!line.Contains("=")) continue;
+                        if (line.StartsWith("#")) continue;
+
+                        string[] data = line.Split(new[] { '=' }, 2);
+                        string variable = data[0].Trim().ToLower();
+                        string value = data[1].Trim();
+                        switch (variable)
+                        {
+
+                            case "path":
+                                Path = value;
+                                break;
+                            case "scriptfolder":
+                                ScriptFolder = value;
+                                break;
+                            case "cardcdb":
+                                CardCDB = value;
+                                break;
+                            case "banlist":
+                                BanlistFile = value;
+                                break;
+                            case "errorlog":
+                                Log = Convert.ToBoolean(value);
+                                break;
+                            case "clientversion":
+                                ClientVersion = Convert.ToInt32(value, 16);
+                                break;
+
+                            case "stdoutsupport":
+                                STDOUT = Convert.ToBoolean(value);
+                                break;
+
+                            case "maxdecksize":
+                                MainCountMax = Convert.ToInt32(value);
+                                break;
+                            case "mindecksize":
+                                MainCountMin = Convert.ToInt32(value);
+                                break;
+                            case "maxextradecksize":
+                                ExtraCount = Convert.ToInt32(value);
+                                break;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    reader.Close();
+                    return false;
+                }
+                reader.Close();
+            }
+        
+                if (name.Length < 3)
                 return false;
 
             bool result = name.Contains(",")
