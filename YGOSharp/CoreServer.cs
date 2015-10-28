@@ -9,6 +9,7 @@ namespace YGOSharp
     {
         public bool IsRunning { get; private set; }
         public bool IsListening { get; private set; }
+        public AddonsManager Addons { get; private set; }
         public Game Game { get; private set; }
         public CoreConfig Config { get; private set; }
 
@@ -29,13 +30,16 @@ namespace YGOSharp
         {
             if (IsRunning)
                 return;
+            Addons = new AddonsManager();
             Game = new Game(this, Config);
+            Addons.Init(Game);
             try
             {
                 _listener = new TcpListener(IPAddress.Any, Config.Port);
                 _listener.Start();
                 IsRunning = true;
                 IsListening = true;
+                Game.Start();
             }
             catch (Exception)
             {
@@ -57,6 +61,7 @@ namespace YGOSharp
                 StopListening();
             foreach (CoreClient client in _clients)
                 client.Close();
+            Game.Stop();
             IsRunning = false;
         }
 

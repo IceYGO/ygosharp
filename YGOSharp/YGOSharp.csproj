@@ -41,6 +41,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddonsManager.cs" />
+    <Compile Include="Addons\StandardStreamProtocol.cs" />
     <Compile Include="Banlist.cs" />
     <Compile Include="BanlistManager.cs" />
     <Compile Include="BinaryExtensions.cs" />
@@ -60,7 +62,12 @@
     <Compile Include="GameAnalyser.cs" />
     <Compile Include="GameClientPacket.cs" />
     <Compile Include="GameServerPacket.cs" />
+    <Compile Include="AddonBase.cs" />
+    <Compile Include="IGame.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerChatEventArgs.cs" />
+    <Compile Include="PlayerEventArgs.cs" />
+    <Compile Include="PlayerMoveEventArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Replay.cs" />
@@ -78,6 +85,7 @@
       <Name>SevenZip</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -276,8 +276,8 @@ namespace YGOSharp
         private void OnWin(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
-            msg.Reader.ReadByte(); // reason
-            Game.MatchSaveResult(player);
+            int reason = msg.Reader.ReadByte();
+            Game.MatchSaveResult(player, reason);
             SendToAll(msg);
         }
 

@@ -7,7 +7,7 @@ using YGOSharp.Enums;
 
 namespace YGOSharp
 {
-    public class Game
+    public class Game : IGame
     {
         public CoreConfig Config { get; private set; }
         public Banlist Banlist { get; private set; }
@@ -30,6 +30,10 @@ namespace YGOSharp
         public Player HostPlayer { get; private set; }
 
         public Replay Replay { get; private set; }
+        public int Winner { get; private set; }
+        public int[] MatchResults { get; private set; }
+        public int[] MatchReasons { get; private set; }
+        public int DuelCount;
 
         private CoreServer _server;
         private Duel _duel;
@@ -40,11 +44,20 @@ namespace YGOSharp
 
         private int[] _timelimit;
         private DateTime? _time;
-
-        private int[] _matchResult;
-        private int _duelCount;
+        
         private bool _matchKill;
         private bool _swapped;
+
+        public event Action<object, EventArgs> OnNetworkReady;
+        public event Action<object, EventArgs> OnNetworkEnd;
+        public event Action<object, EventArgs> OnGameStart;
+        public event Action<object, EventArgs> OnGameEnd;
+        public event Action<object, EventArgs> OnDuelEnd;
+        public event Action<object, PlayerEventArgs> OnPlayerJoin;
+        public event Action<object, PlayerEventArgs> OnPlayerLeave;
+        public event Action<object, PlayerMoveEventArgs> OnPlayerMove;
+        public event Action<object, PlayerEventArgs> OnPlayerReady;
+        public event Action<object, PlayerChatEventArgs> OnPlayerChat;
 
         public Game(CoreServer server, CoreConfig config)
         {
@@ -59,13 +72,31 @@ namespace YGOSharp
             IsReady = new bool[IsTag ? 4 : 2];
             _handResult = new int[2];
             _timelimit = new int[2];
-            _matchResult = new int[3];
+            Winner = -1;
+            MatchResults = new int[3];
+            MatchReasons = new int[3];
             Observers = new List<Player>();
             if (config.LfList >= 0 && config.LfList < BanlistManager.Banlists.Count)
                 Banlist = BanlistManager.Banlists[config.LfList];
             _server = server;
             _analyser = new GameAnalyser(this);
             ReloadGameConfig();
+        }
+
+        public void Start()
+        {
+            if (OnNetworkReady != null)
+            {
+                OnNetworkReady(this, EventArgs.Empty);
+            }
+        }
+
+        public void Stop()
+        {
+            if (OnNetworkEnd != null)
+            {
+                OnNetworkEnd(this, EventArgs.Empty);
+            }
         }
 
         public void ReloadGameConfig()
@@ -138,14 +169,19 @@ namespace YGOSharp
             if (State != GameState.Lobby)
             {
                 player.Type = (int)PlayerType.Observer;
-                if (State == GameState.End)
-                    return;
-                SendJoinGame(player);
-                player.SendTypeChange();
-                player.Send(new GameServerPacket(StocMessage.DuelStart));
-                Observers.Add(player);
-                if (State == GameState.Duel)
-                    InitNewSpectator(player);
+                if (State != GameState.End)
+                {
+                    SendJoinGame(player);
+                    player.SendTypeChange();
+                    player.Send(new GameServerPacket(StocMessage.DuelStart));
+                    Observers.Add(player);
+                    if (State == GameState.Duel)
+                        InitNewSpectator(player);
+                }
+                if (OnPlayerJoin != null)
+                {
+                    OnPlayerJoin(this, new PlayerEventArgs(player));
+                }
                 return;
             }
 
@@ -205,13 +241,22 @@ namespace YGOSharp
                 nwatch.Write((short)Observers.Count);
                 player.Send(nwatch);
             }
+
+            if (OnPlayerJoin != null)
+            {
+                OnPlayerJoin(this, new PlayerEventArgs(player));
+            }
         }
 
         public void RemovePlayer(Player player)
         {
             if (player.Equals(HostPlayer) && State == GameState.Lobby)
+            {
                 _server.Stop();
-            else if (player.Type == (int)PlayerType.Observer)
+                return;
+            }
+
+            if (player.Type == (int)PlayerType.Observer)
             {
                 Observers.Remove(player);
                 if (State == GameState.Lobby)
@@ -233,6 +278,11 @@ namespace YGOSharp
             }
             else
                 Surrender(player, 4, true);
+
+            if (OnPlayerLeave != null)
+            {
+                OnPlayerLeave(this, new PlayerEventArgs(player));
+            }
         }
 
         public void MoveToDuelist(Player player)
@@ -242,6 +292,9 @@ namespace YGOSharp
             int pos = GetAvailablePlayerPos();
             if (pos == -1)
                 return;
+
+            int oldType = player.Type;
+
             if (player.Type != (int)PlayerType.Observer)
             {
                 if (!IsTag || IsReady[player.Type])
@@ -279,6 +332,10 @@ namespace YGOSharp
 
                 player.SendTypeChange();
             }
+            if (OnPlayerMove != null)
+            {
+                OnPlayerMove(this, new PlayerMoveEventArgs(player, oldType));
+            }
         }
 
         public void MoveToObserver(Player player)
@@ -289,6 +346,9 @@ namespace YGOSharp
                 return;
             if (IsReady[player.Type])
                 return;
+
+            int oldType = player.Type;
+
             Players[player.Type] = null;
             IsReady[player.Type] = false;
             Observers.Add(player);
@@ -299,6 +359,11 @@ namespace YGOSharp
 
             player.Type = (int)PlayerType.Observer;
             player.SendTypeChange();
+
+            if (OnPlayerMove != null)
+            {
+                OnPlayerMove(this, new PlayerMoveEventArgs(player, oldType));
+            }
         }
 
         public void Chat(Player player, string msg)
@@ -307,13 +372,17 @@ namespace YGOSharp
             packet.Write((short)player.Type);
             if (player.Type == (int)PlayerType.Observer)
             {
-                msg = "[" + player.Name + "]: " + msg;
-                CustomMessage(player, msg);
+                string fullmsg = "[" + player.Name + "]: " + msg;
+                CustomMessage(player, fullmsg);
             }
             else
             {
                 packet.Write(msg, msg.Length + 1);
                 SendToAllBut(packet, player);
+            }
+            if (OnPlayerChat != null)
+            {
+                OnPlayerChat(this, new PlayerChatEventArgs(player, msg));
             }
         }
 
@@ -365,6 +434,11 @@ namespace YGOSharp
             GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
             change.Write((byte)((player.Type << 4) + (int)(ready ? PlayerChange.Ready : PlayerChange.NotReady)));
             SendToAll(change);
+
+            if (OnPlayerReady != null)
+            {
+                OnPlayerReady(this, new PlayerEventArgs(player));
+            }
         }
 
         public void KickPlayer(Player player, int pos)
@@ -394,6 +468,11 @@ namespace YGOSharp
             SendToAll(new GameServerPacket(StocMessage.DuelStart));
 
             SendHand();
+
+            if (OnGameStart != null)
+            {
+                OnGameStart(this, EventArgs.Empty);
+            }
         }
 
         public void HandResult(Player player, int result)
@@ -607,7 +686,7 @@ namespace YGOSharp
             win.Write((byte)reason);
             SendToAll(win);
 
-            MatchSaveResult(1 - team);
+            MatchSaveResult(1 - team, reason);
 
             EndDuel(reason == 4);
         }
@@ -906,6 +985,11 @@ namespace YGOSharp
                 }
             }
 
+            if (OnDuelEnd != null)
+            {
+                OnDuelEnd(this, EventArgs.Empty);
+            }
+
             if (IsMatch && !force && !MatchIsEnd())
             {
                 IsReady[0] = false;
@@ -917,23 +1001,22 @@ namespace YGOSharp
             }
             else
             {
-                if (State == GameState.Hand)
-                {
-                    State = GameState.End;
-                    End();
-                }
-                else
-                {
-                    ApplyRanking();
-                    End();
-                }
+                CalculateWinner();
+                End();
             }
         }
 
         public void End()
         {
+            State = GameState.End;
+
             SendToAll(new GameServerPacket(StocMessage.DuelEnd));
             _server.StopDelayed();
+
+            if (OnGameEnd != null)
+            {
+                OnGameEnd(this, EventArgs.Empty);
+            }
         }
 
         public void TimeReset()
@@ -982,13 +1065,12 @@ namespace YGOSharp
                     if (!IsReady[0] && !IsReady[1])
                     {
                         State = GameState.End;
+                        CalculateWinner();
                         End();
                         return;
                     }
 
                     Surrender(!IsReady[0] ? Players[0] : Players[1], 3, true);
-                    State = GameState.End;
-                    End();
                 }
             }
 
@@ -1001,8 +1083,6 @@ namespace YGOSharp
                     if (elapsed.TotalMilliseconds >= 30000)
                     {
                         Surrender(Players[_startplayer], 3, true);
-                        State = GameState.End;
-                        End();
                     }
 
                 }
@@ -1018,15 +1098,12 @@ namespace YGOSharp
                     else if (_handResult[1] != 0)
                         Surrender(Players[0], 3, true);
                     else
-                    {
-                        State = GameState.End;
                         End();
-                    }
                 }
             }
         }
 
-        public void MatchSaveResult(int player)
+        public void MatchSaveResult(int player, int reason)
         {
             if (player < 2 && _swapped)
                 player = 1 - player;
@@ -1034,7 +1111,8 @@ namespace YGOSharp
                 _startplayer = 1 - player;
             else
                 _startplayer = 1 - _startplayer;
-            _matchResult[_duelCount++] = player;
+            MatchResults[DuelCount] = player;
+            MatchReasons[DuelCount++] = reason;
         }
 
         public void MatchKill()
@@ -1047,8 +1125,8 @@ namespace YGOSharp
             if (_matchKill)
                 return true;
             int[] wins = new int[3];
-            for (int i = 0; i < _duelCount; i++)
-                wins[_matchResult[i]]++;
+            for (int i = 0; i < DuelCount; i++)
+                wins[MatchResults[i]]++;
             return wins[0] == 2 || wins[1] == 2 || wins[0] + wins[1] + wins[2] == 3;
         }
 
@@ -1302,16 +1380,16 @@ namespace YGOSharp
             return shuffled;
         }
 
-        private void ApplyRanking()
+        private void CalculateWinner()
         {
             int winner = -1;
-            if (_duelCount > 0)
+            if (DuelCount > 0)
             {
-                if (!_matchKill && _duelCount != 1)
+                if (!_matchKill && DuelCount != 1)
                 {
                     int[] wins = new int[3];
-                    for (int i = 0; i < _duelCount; i++)
-                        wins[_matchResult[i]]++;
+                    for (int i = 0; i < DuelCount; i++)
+                        wins[MatchResults[i]]++;
                     if (wins[0] > wins[1])
                         winner = 0;
                     else if (wins[1] > wins[0])
@@ -1320,10 +1398,10 @@ namespace YGOSharp
                         winner = 2;
                 }
                 else
-                    winner = _matchResult[_duelCount - 1];
+                    winner = MatchResults[DuelCount - 1];
             }
 
-            // TODO save the ranking
+            Winner = winner;
         }
     }
 }
