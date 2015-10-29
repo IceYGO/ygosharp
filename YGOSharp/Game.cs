@@ -9,7 +9,11 @@ namespace YGOSharp
 {
     public class Game : IGame
     {
-        public CoreConfig Config { get; private set; }
+        public const int DEFAULT_LIFEPOINTS = 8000;
+        public const int DEFAULT_START_HAND = 5;
+        public const int DEFAULT_DRAW_COUNT = 1;
+        public const int DEFAULT_TIMER = 240;
+
         public Banlist Banlist { get; private set; }
         public bool IsMatch { get; private set; }
         public bool IsTag { get; private set; }
@@ -59,12 +63,11 @@ namespace YGOSharp
         public event Action<object, PlayerEventArgs> OnPlayerReady;
         public event Action<object, PlayerChatEventArgs> OnPlayerChat;
 
-        public Game(CoreServer server, CoreConfig config)
+        public Game(CoreServer server)
         {
-            Config = config;
             State = GameState.Lobby;
-            IsMatch = config.Mode == 1;
-            IsTag = config.Mode == 2;
+            IsMatch = Config.GetInt("Mode") == 1;
+            IsTag = Config.GetInt("Mode") == 2;
             CurrentPlayer = 0;
             LifePoints = new int[2];
             Players = new Player[IsTag ? 4 : 2];
@@ -76,11 +79,16 @@ namespace YGOSharp
             MatchResults = new int[3];
             MatchReasons = new int[3];
             Observers = new List<Player>();
-            if (config.LfList >= 0 && config.LfList < BanlistManager.Banlists.Count)
-                Banlist = BanlistManager.Banlists[config.LfList];
+
+            int lfList = Config.GetInt("Banlist");
+            if (lfList >= 0 && lfList < BanlistManager.Banlists.Count)
+                Banlist = BanlistManager.Banlists[lfList];
+
+            LifePoints[0] = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
+            LifePoints[1] = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
+
             _server = server;
             _analyser = new GameAnalyser(this);
-            ReloadGameConfig();
         }
 
         public void Start()
@@ -98,19 +106,7 @@ namespace YGOSharp
                 OnNetworkEnd(this, EventArgs.Empty);
             }
         }
-
-        public void ReloadGameConfig()
-        {
-            IsMatch = Config.Mode == 1;
-            IsTag = Config.Mode == 2;
-            Players = new Player[IsTag ? 4 : 2];
-            IsReady = new bool[IsTag ? 4 : 2];
-            if (Config.LfList >= 0 && Config.LfList < BanlistManager.Banlists.Count)
-                Banlist = BanlistManager.Banlists[Config.LfList];
-            LifePoints[0] = Config.StartLp;
-            LifePoints[1] = Config.StartLp;
-        }
-
+        
         public void SendToAll(GameServerPacket packet)
         {
             SendToPlayers(packet);
@@ -406,12 +402,13 @@ namespace YGOSharp
 
             if (ready)
             {
-                bool ocg = Config.Rule == 0 || Config.Rule == 2;
-                bool tcg = Config.Rule == 1 || Config.Rule == 2;
+                int rule = Config.GetInt("Rule");
+                bool ocg = rule == 0 || rule == 2;
+                bool tcg = rule == 1 || rule == 2;
                 int result = 1;
                 if (player.Deck != null)
                 {
-                    result = Config.NoCheckDeck ? 0 : player.Deck.Check(Banlist, ocg, tcg);
+                    result = Config.GetBool("NoCheckDeck") ? 0 : player.Deck.Check(Banlist, ocg, tcg);
                 }
                 if (result != 0)
                 {
@@ -566,15 +563,21 @@ namespace YGOSharp
             _duel = Duel.Create((uint)seed);
             Random rand = new Random(seed);
 
+            int startLp = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
+            int startHand = Config.GetInt("StartHand", DEFAULT_START_HAND);
+            int drawCount = Config.GetInt("DrawCount", DEFAULT_DRAW_COUNT);
+            bool enablePriority = Config.GetBool("EnablePriority");
+            bool noShuffleDeck = Config.GetBool("NoShuffleDeck");
+
             _duel.SetAnalyzer(_analyser.Analyse);
             _duel.SetErrorHandler(HandleError);
 
-            _duel.InitPlayers(Config.StartLp, Config.StartHand, Config.DrawCount);
+            _duel.InitPlayers(startLp, startHand, drawCount);
 
             int opt = 0;
-            if (Config.EnablePriority)
+            if (enablePriority)
                 opt += 0x08;
-            if (Config.NoShuffleDeck)
+            if (noShuffleDeck)
                 opt += 0x10;
             if (IsTag)
                 opt += 0x20;
@@ -587,9 +590,9 @@ namespace YGOSharp
                 Replay.Writer.WriteUnicode(Players[2].Name, 20);
                 Replay.Writer.WriteUnicode(Players[3].Name, 20);
             }
-            Replay.Writer.Write(Config.StartLp);
-            Replay.Writer.Write(Config.StartHand);
-            Replay.Writer.Write(Config.DrawCount);
+            Replay.Writer.Write(startLp);
+            Replay.Writer.Write(startHand);
+            Replay.Writer.Write(drawCount);
             Replay.Writer.Write(opt);
 
             for (int i = 0; i < Players.Length; i++)
@@ -598,7 +601,7 @@ namespace YGOSharp
                 int pid = i;
                 if (IsTag)
                     pid = i >= 2 ? 1 : 0;
-                if (!Config.NoShuffleDeck)
+                if (!noShuffleDeck)
                 {
                     List<int> cards = ShuffleCards(rand, dplayer.Deck.Main);
                     Replay.Writer.Write(cards.Count);
@@ -637,8 +640,8 @@ namespace YGOSharp
 
             GameServerPacket packet = new GameServerPacket(GameMessage.Start);
             packet.Write((byte)0);
-            packet.Write(Config.StartLp);
-            packet.Write(Config.StartLp);
+            packet.Write(startLp);
+            packet.Write(startLp);
             packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Deck));
             packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Extra));
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Deck));
@@ -662,8 +665,8 @@ namespace YGOSharp
             _duel.Start(opt);
 
             TurnCount = 0;
-            LifePoints[0] = Config.StartLp;
-            LifePoints[1] = Config.StartLp;
+            LifePoints[0] = startLp;
+            LifePoints[1] = startLp;
             TimeReset();
 
             Process();
@@ -1021,8 +1024,8 @@ namespace YGOSharp
 
         public void TimeReset()
         {
-            _timelimit[0] = Config.GameTimer;
-            _timelimit[1] = Config.GameTimer;
+            _timelimit[0] = Config.GetInt("GameTimer", DEFAULT_TIMER);
+            _timelimit[1] = Config.GetInt("GameTimer", DEFAULT_TIMER);
         }
 
         public void TimeStart()
@@ -1183,18 +1186,18 @@ namespace YGOSharp
         {
             GameServerPacket join = new GameServerPacket(StocMessage.JoinGame);
             join.Write(Banlist == null ? 0U : Banlist.Hash);
-            join.Write((byte)Config.Rule);
-            join.Write((byte)Config.Mode);
-            join.Write(Config.EnablePriority);
-            join.Write(Config.NoCheckDeck);
-            join.Write(Config.NoShuffleDeck);
+            join.Write((byte)Config.GetInt("Rule"));
+            join.Write((byte)Config.GetInt("Mode"));
+            join.Write(Config.GetBool("EnablePriority"));
+            join.Write(Config.GetBool("NoCheckDeck"));
+            join.Write(Config.GetBool("NoShuffleDeck"));
             // C++ padding: 5 bytes + 3 bytes = 8 bytes
             for (int i = 0; i < 3; i++)
                 join.Write((byte)0);
-            join.Write(Config.StartLp);
-            join.Write((byte)Config.StartHand);
-            join.Write((byte)Config.DrawCount);
-            join.Write((short)Config.GameTimer);
+            join.Write(Config.GetInt("StartLp", DEFAULT_LIFEPOINTS));
+            join.Write((byte)Config.GetInt("StartHand", DEFAULT_START_HAND));
+            join.Write((byte)Config.GetInt("DrawCount", DEFAULT_DRAW_COUNT));
+            join.Write((short)Config.GetInt("GameTimer", DEFAULT_TIMER));
             player.Send(join);
 
             if (State != GameState.Lobby)
@@ -1256,107 +1259,7 @@ namespace YGOSharp
 
             RefreshAllObserver(player);
         }
-
-        private void InitSpectatorLocation(Player player, CardLocation loc)
-        {
-            for (int index = 0; index < 2; index++)
-            {
-                int flag = loc == CardLocation.MonsterZone ? 0x91fff : 0x81fff;
-                byte[] result = _duel.QueryFieldCard(index, loc, flag, false);
-
-                MemoryStream ms = new MemoryStream(result);
-                BinaryReader reader = new BinaryReader(ms);
-                BinaryWriter writer = new BinaryWriter(ms);
-                while (ms.Position < ms.Length)
-                {
-                    int len = reader.ReadInt32();
-                    if (len == 4)
-                        continue;
-                    long pos = ms.Position;
-                    reader.ReadBytes(len - 4);
-                    long endPos = ms.Position;
-
-                    ms.Position = pos;
-                    ClientCard card = new ClientCard();
-                    card.Update(reader);
-                    ms.Position = endPos;
-
-                    bool facedown = ((card.Position & (int)CardPosition.FaceDown) != 0);
-
-                    GameServerPacket move = new GameServerPacket(GameMessage.Move);
-                    move.Write(facedown ? 0 : card.Code);
-                    move.Write(0);
-                    move.Write((byte)card.Controler);
-                    move.Write((byte)card.Location);
-                    move.Write((byte)card.Sequence);
-                    move.Write((byte)card.Position);
-                    move.Write(0);
-                    player.Send(move);
-
-                    foreach (ClientCard material in card.Overlay)
-                    {
-                        GameServerPacket xyzcreate = new GameServerPacket(GameMessage.Move);
-                        xyzcreate.Write(material.Code);
-                        xyzcreate.Write(0);
-                        xyzcreate.Write((byte)index);
-                        xyzcreate.Write((byte)CardLocation.Grave);
-                        xyzcreate.Write((byte)0);
-                        xyzcreate.Write((byte)0);
-                        xyzcreate.Write(0);
-                        player.Send(xyzcreate);
-
-                        GameServerPacket xyzmove = new GameServerPacket(GameMessage.Move);
-                        xyzmove.Write(material.Code);
-                        xyzmove.Write((byte)index);
-                        xyzmove.Write((byte)CardLocation.Grave);
-                        xyzmove.Write((byte)0);
-                        xyzmove.Write((byte)0);
-                        xyzmove.Write((byte)material.Controler);
-                        xyzmove.Write((byte)material.Location);
-                        xyzmove.Write((byte)material.Sequence);
-                        xyzmove.Write((byte)material.Position);
-                        xyzmove.Write(0);
-                        player.Send(xyzmove);
-                    }
-
-                    if (facedown)
-                    {
-                        ms.Position = pos;
-                        writer.Write(new byte[len - 4]);
-                    }
-                }
-
-                if (loc == CardLocation.MonsterZone)
-                {
-                    result = _duel.QueryFieldCard(index, loc, 0x81fff, false);
-                    ms = new MemoryStream(result);
-                    reader = new BinaryReader(ms);
-                    writer = new BinaryWriter(ms);
-                    while (ms.Position < ms.Length)
-                    {
-                        int len = reader.ReadInt32();
-                        if (len == 4)
-                            continue;
-                        long pos = ms.Position;
-                        byte[] raw = reader.ReadBytes(len - 4);
-
-                        bool facedown = ((raw[11] & (int)CardPosition.FaceDown) != 0);
-                        if (facedown)
-                        {
-                            ms.Position = pos;
-                            writer.Write(new byte[len - 4]);
-                        }
-                    }
-                }
-
-                GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
-                update.Write((byte)index);
-                update.Write((byte)loc);
-                update.Write(result);
-                player.Send(update);
-            }
-        }
-
+        
         private void HandleError(string error)
         {
             GameServerPacket packet = new GameServerPacket(StocMessage.Chat);

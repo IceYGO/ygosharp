@@ -7,11 +7,12 @@ namespace YGOSharp
 {
     public class CoreServer
     {
+        public static int DEFAULT_PORT = 7911;
+
         public bool IsRunning { get; private set; }
         public bool IsListening { get; private set; }
         public AddonsManager Addons { get; private set; }
         public Game Game { get; private set; }
-        public CoreConfig Config { get; private set; }
 
         private TcpListener _listener;
         private readonly List<CoreClient> _clients;
@@ -19,11 +20,10 @@ namespace YGOSharp
 
         private bool _closePending;
 
-        public CoreServer(CoreConfig config)
+        public CoreServer()
         {
             _clients = new List<CoreClient>();
             _removedClients = new List<CoreClient>();
-            Config = config;
         }
 
         public void Start()
@@ -31,11 +31,11 @@ namespace YGOSharp
             if (IsRunning)
                 return;
             Addons = new AddonsManager();
-            Game = new Game(this, Config);
+            Game = new Game(this);
             Addons.Init(Game);
             try
             {
-                _listener = new TcpListener(IPAddress.Any, Config.Port);
+                _listener = new TcpListener(IPAddress.Any, Config.GetInt("Port", DEFAULT_PORT));
                 _listener.Start();
                 IsRunning = true;
                 IsListening = true;

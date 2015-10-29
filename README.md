@@ -10,6 +10,6 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 
 * Put _cards.cdb_, _lflist.conf_, _ocgcore.dll_ and the _script_ directory next to the compiled YGOSharp.exe.
 
-* Run the executable using valid parameters, e.g. _000 12345_ to host an unranked single duel on the port 12345.
+* Run the executable with or without parameters. The default configuration will host an unranked single duel on the port 12345.
 
 * Enjoy.

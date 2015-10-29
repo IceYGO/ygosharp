@@ -8,6 +8,9 @@ namespace YGOSharp.Addons
         public StandardStreamProtocol(Game game)
             : base(game)
         {
+            if (!Config.GetBool("StandardStreamProtocol"))
+                return;
+
             Game.OnNetworkReady += Game_OnNetworkReady;
             Game.OnNetworkEnd += Game_OnNetworkEnd;
             Game.OnPlayerChat += Game_OnPlayerChat;

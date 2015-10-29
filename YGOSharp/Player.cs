@@ -160,7 +160,7 @@ namespace YGOSharp
                 return;
 
             int version = packet.ReadInt16();
-            if (version != Program.ProVersion)
+            if (version != Program.ClientVersion)
                 return;
 
             packet.ReadInt32();//gameid

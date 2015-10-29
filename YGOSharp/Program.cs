@@ -9,7 +9,7 @@ namespace YGOSharp
 {
     public class Program
     {
-        public const int ProVersion = 0x1337;
+        public static uint ClientVersion = 0x1337;
 
         public static void Main(string[] args)
         {
@@ -17,15 +17,14 @@ namespace YGOSharp
             try
             {
 #endif
+                Config.Load(args);
 
-                CoreConfig config = new CoreConfig();
-                if (args.Length != 2 || !config.Load(args[0], args[1]))
-                    return;
+                BanlistManager.Init(Config.GetString("BanlistFile", "lflist.conf"));
+                Api.Init(Config.GetString("RootPath", "."), Config.GetString("ScriptDirectory", "script"), Config.GetString("DatabaseFile", "cards.cdb"));
 
-                BanlistManager.Init("lflist.conf");
-                Api.Init();
+                ClientVersion = Config.GetUInt("ClientVersion", ClientVersion);
 
-                CoreServer server = new CoreServer(config);
+                CoreServer server = new CoreServer();
                 server.Start();
                 while (server.IsRunning)
                 {

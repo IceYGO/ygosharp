@@ -47,8 +47,8 @@
     <Compile Include="BanlistManager.cs" />
     <Compile Include="BinaryExtensions.cs" />
     <Compile Include="ClientCard.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="CoreClient.cs" />
-    <Compile Include="CoreConfig.cs" />
     <Compile Include="CoreMessage.cs" />
     <Compile Include="CoreServer.cs" />
     <Compile Include="Deck.cs" />
