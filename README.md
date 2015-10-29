@@ -13,3 +13,62 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 * Run the executable with or without parameters. The default configuration will host an unranked single duel on the port 7911.
 
 * Enjoy.
+
+## Configuration options
+
+### Server
+
+* `ConfigFile` (default: none)
+
+* `ClientVersion` (default: `0x1337`)
+
+* `Port` (default: `7911`)
+
+### Files
+
+* `BanlistFile` (default: `lflist.conf`)
+
+* `RootPath` (default: `.`)
+
+* `ScriptDirectory` (default: `script`)
+
+* `DatabaseFile` (default: `cards.cdb`)
+
+### Game
+
+* `Rule` (default: `0`)
+
+* `Mode` (default: `0`)
+
+* `Banlist` (default: `0`)
+
+* `StartLp` (default: `8000`)
+
+* `StartHand` (default: `5`)
+
+* `DrawCount` (default: `1`)
+
+* `GameTimer` (default: `240`)
+
+### Deck
+
+* `NoCheckDeck` (default: `false`)
+
+* `NoShuffleDeck` (default: `false`)
+
+* `MainDeckMinSize` (default: `40`)
+
+* `MainDeckMaxSize` (default: `60`)
+
+* `ExtraDeckMaxSize` (default: `15`)
+
+* `SideDeckMaxSize` (default: `15`)
+
+### Legacy
+
+* `EnablePriority` (default: `false`)
+
+### Addons
+
+* `StandardStreamProtocol`  (default: `false`)
+
