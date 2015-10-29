@@ -49,7 +49,10 @@ namespace YGOSharp
 
         public int Check(Banlist ban, bool ocg, bool tcg)
         {
-            if (Main.Count < 40 || Main.Count > 60 || Extra.Count > 15 || Side.Count > 15)
+            if (Main.Count < Config.GetInt("MainDeckMinSize", 40) ||
+                Main.Count > Config.GetInt("MainDeckMaxSize", 60) ||
+                Extra.Count > Config.GetInt("ExtraDeckMaxSize", 15) ||
+                Side.Count > Config.GetInt("SideDeckMaxSize", 15))
                 return 1;
 
             IDictionary<int, int> cards = new Dictionary<int, int>();
