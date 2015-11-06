@@ -48,21 +48,13 @@
     <Compile Include="BinaryExtensions.cs" />
     <Compile Include="ClientCard.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="CoreClient.cs" />
     <Compile Include="CoreMessage.cs" />
     <Compile Include="CoreServer.cs" />
     <Compile Include="Deck.cs" />
-    <Compile Include="Enums\CtosMessage.cs" />
-    <Compile Include="Enums\GameState.cs" />
-    <Compile Include="Enums\PlayerChange.cs" />
-    <Compile Include="Enums\PlayerState.cs" />
-    <Compile Include="Enums\PlayerType.cs" />
-    <Compile Include="Enums\StocMessage.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GameAnalyser.cs" />
-    <Compile Include="GameClientPacket.cs" />
-    <Compile Include="GameServerPacket.cs" />
     <Compile Include="AddonBase.cs" />
+    <Compile Include="GamePacketFactory.cs" />
     <Compile Include="IGame.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerChatEventArgs.cs" />
@@ -83,6 +75,10 @@
     <ProjectReference Include="..\SevenZip\SevenZip.csproj">
       <Project>{fc0182a3-db1a-48d4-a432-5f78093b137e}</Project>
       <Name>SevenZip</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\YGOSharp.Network\YGOSharp.Network.csproj">
+      <Project>{6086fe8a-07cd-4720-a024-6aec05e93762}</Project>
+      <Name>YGOSharp.Network</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using OCGWrapper;
 using OCGWrapper.Enums;
-using YGOSharp.Enums;
+using YGOSharp.Network;
+using YGOSharp.Network.Enums;
 
 namespace YGOSharp
 {
@@ -107,13 +108,13 @@ namespace YGOSharp
             }
         }
         
-        public void SendToAll(GameServerPacket packet)
+        public void SendToAll(GamePacketWriter packet)
         {
             SendToPlayers(packet);
             SendToObservers(packet);
         }
 
-        public void SendToAllBut(GameServerPacket packet, Player except)
+        public void SendToAllBut(GamePacketWriter packet, Player except)
         {
             foreach (Player player in Players)
                 if (player != null && !player.Equals(except))
@@ -123,7 +124,7 @@ namespace YGOSharp
                     player.Send(packet);
         }
 
-        public void SendToAllBut(GameServerPacket packet, int except)
+        public void SendToAllBut(GamePacketWriter packet, int except)
         {
             if(except < CurPlayers.Length)
                 SendToAllBut(packet, CurPlayers[except]);
@@ -131,20 +132,20 @@ namespace YGOSharp
                 SendToAll(packet);
         }
 
-        public void SendToPlayers(GameServerPacket packet)
+        public void SendToPlayers(GamePacketWriter packet)
         {
             foreach (Player player in Players)
                 if (player != null)
                     player.Send(packet);
         }
 
-        public void SendToObservers(GameServerPacket packet)
+        public void SendToObservers(GamePacketWriter packet)
         {
             foreach (Player player in Observers)
                 player.Send(packet);
         }
 
-        public void SendToTeam(GameServerPacket packet, int team)
+        public void SendToTeam(GamePacketWriter packet, int team)
         {
             if (!IsTag)
                 Players[team].Send(packet);
@@ -169,7 +170,7 @@ namespace YGOSharp
                 {
                     SendJoinGame(player);
                     player.SendTypeChange();
-                    player.Send(new GameServerPacket(StocMessage.DuelStart));
+                    player.Send(new GamePacketWriter(StocMessage.DuelStart));
                     Observers.Add(player);
                     if (State == GameState.Duel)
                         InitNewSpectator(player);
@@ -187,7 +188,7 @@ namespace YGOSharp
             int pos = GetAvailablePlayerPos();
             if (pos != -1)
             {
-                GameServerPacket enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+                GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
                 enter.Write(player.Name, 20);
                 enter.Write((byte)pos);
                 //padding
@@ -200,7 +201,7 @@ namespace YGOSharp
             }
             else
             {
-                GameServerPacket watch = new GameServerPacket(StocMessage.HsWatchChange);
+                GamePacketWriter watch = new GamePacketWriter(StocMessage.HsWatchChange);
                 watch.Write((short)(Observers.Count + 1));
                 SendToAll(watch);
 
@@ -215,7 +216,7 @@ namespace YGOSharp
             {
                 if (Players[i] != null)
                 {
-                    GameServerPacket enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+                    GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
                     enter.Write(Players[i].Name, 20);
                     enter.Write((byte)i);
                     //padding
@@ -224,7 +225,7 @@ namespace YGOSharp
 
                     if (IsReady[i])
                     {
-                        GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
+                        GamePacketWriter change = new GamePacketWriter(StocMessage.HsPlayerChange);
                         change.Write((byte)((i << 4) + (int)PlayerChange.Ready));
                         player.Send(change);
                     }
@@ -233,7 +234,7 @@ namespace YGOSharp
 
             if (Observers.Count > 0)
             {
-                GameServerPacket nwatch = new GameServerPacket(StocMessage.HsWatchChange);
+                GamePacketWriter nwatch = new GamePacketWriter(StocMessage.HsWatchChange);
                 nwatch.Write((short)Observers.Count);
                 player.Send(nwatch);
             }
@@ -257,7 +258,7 @@ namespace YGOSharp
                 Observers.Remove(player);
                 if (State == GameState.Lobby)
                 {
-                    GameServerPacket nwatch = new GameServerPacket(StocMessage.HsWatchChange);
+                    GamePacketWriter nwatch = new GamePacketWriter(StocMessage.HsWatchChange);
                     nwatch.Write((short) Observers.Count);
                     SendToAll(nwatch);
                 }
@@ -267,7 +268,7 @@ namespace YGOSharp
             {
                 Players[player.Type] = null;
                 IsReady[player.Type] = false;
-                GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
+                GamePacketWriter change = new GamePacketWriter(StocMessage.HsPlayerChange);
                 change.Write((byte)((player.Type << 4) + (int) PlayerChange.Leave));
                 SendToAll(change);
                 player.Disconnect();
@@ -300,7 +301,7 @@ namespace YGOSharp
                 while (Players[pos] != null)
                     pos = (pos + 1) % 4;
 
-                GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
+                GamePacketWriter change = new GamePacketWriter(StocMessage.HsPlayerChange);
                 change.Write((byte)((player.Type << 4) + pos));
                 SendToAll(change);
 
@@ -315,14 +316,14 @@ namespace YGOSharp
                 Players[pos] = player;
                 player.Type = pos;
 
-                GameServerPacket enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+                GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
                 enter.Write(player.Name, 20);
                 enter.Write((byte)pos);
                 //padding
                 enter.Write((byte)0);
                 SendToAll(enter);
 
-                GameServerPacket nwatch = new GameServerPacket(StocMessage.HsWatchChange);
+                GamePacketWriter nwatch = new GamePacketWriter(StocMessage.HsWatchChange);
                 nwatch.Write((short)Observers.Count);
                 SendToAll(nwatch);
 
@@ -349,7 +350,7 @@ namespace YGOSharp
             IsReady[player.Type] = false;
             Observers.Add(player);
 
-            GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
+            GamePacketWriter change = new GamePacketWriter(StocMessage.HsPlayerChange);
             change.Write((byte)((player.Type << 4) + (int)PlayerChange.Observe));
             SendToAll(change);
 
@@ -364,7 +365,7 @@ namespace YGOSharp
 
         public void Chat(Player player, string msg)
         {
-            GameServerPacket packet = new GameServerPacket(StocMessage.Chat);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.Chat);
             packet.Write((short)player.Type);
             if (player.Type == (int)PlayerType.Observer)
             {
@@ -385,7 +386,7 @@ namespace YGOSharp
         public void CustomMessage(Player player, string msg)
         {
             string finalmsg = msg;
-            GameServerPacket packet = new GameServerPacket(StocMessage.Chat);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.Chat);
             packet.Write((short)PlayerType.Yellow);
             packet.Write(finalmsg, finalmsg.Length + 1);
             SendToAllBut(packet, player);
@@ -412,10 +413,10 @@ namespace YGOSharp
                 }
                 if (result != 0)
                 {
-                    GameServerPacket rechange = new GameServerPacket(StocMessage.HsPlayerChange);
+                    GamePacketWriter rechange = new GamePacketWriter(StocMessage.HsPlayerChange);
                     rechange.Write((byte)((player.Type << 4) + (int)(PlayerChange.NotReady)));
                     player.Send(rechange);
-                    GameServerPacket error = new GameServerPacket(StocMessage.ErrorMsg);
+                    GamePacketWriter error = new GamePacketWriter(StocMessage.ErrorMsg);
                     error.Write((byte)2); // ErrorMsg.DeckError
                     // C++ padding: 1 byte + 3 bytes = 4 bytes
                     for (int i = 0; i < 3; i++)
@@ -428,7 +429,7 @@ namespace YGOSharp
 
             IsReady[player.Type] = ready;
 
-            GameServerPacket change = new GameServerPacket(StocMessage.HsPlayerChange);
+            GamePacketWriter change = new GamePacketWriter(StocMessage.HsPlayerChange);
             change.Write((byte)((player.Type << 4) + (int)(ready ? PlayerChange.Ready : PlayerChange.NotReady)));
             SendToAll(change);
 
@@ -462,7 +463,7 @@ namespace YGOSharp
             }
 
             State = GameState.Hand;
-            SendToAll(new GameServerPacket(StocMessage.DuelStart));
+            SendToAll(new GamePacketWriter(StocMessage.DuelStart));
 
             SendHand();
 
@@ -490,13 +491,13 @@ namespace YGOSharp
             _handResult[type] = result;
             if (_handResult[0] != 0 && _handResult[1] != 0)
             {
-                GameServerPacket packet = new GameServerPacket(StocMessage.HandResult);
+                GamePacketWriter packet = new GamePacketWriter(StocMessage.HandResult);
                 packet.Write((byte)_handResult[0]);
                 packet.Write((byte)_handResult[1]);
                 SendToTeam(packet, 0);
                 SendToObservers(packet);
 
-                packet = new GameServerPacket(StocMessage.HandResult);
+                packet = new GamePacketWriter(StocMessage.HandResult);
                 packet.Write((byte)_handResult[1]);
                 packet.Write((byte)_handResult[0]);
                 SendToTeam(packet, 1);
@@ -515,7 +516,7 @@ namespace YGOSharp
                 else
                     _startplayer = 0;
                 State = GameState.Starting;
-                Players[_startplayer].Send(new GameServerPacket(StocMessage.SelectTp));
+                Players[_startplayer].Send(new GamePacketWriter(StocMessage.SelectTp));
                 TpTimer = DateTime.UtcNow;
             }
         }
@@ -638,7 +639,7 @@ namespace YGOSharp
                 }
             }
 
-            GameServerPacket packet = new GameServerPacket(GameMessage.Start);
+            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.Start);
             packet.Write((byte)0);
             packet.Write(startLp);
             packet.Write(startLp);
@@ -679,7 +680,7 @@ namespace YGOSharp
                     return;
             if (player.Type == (int)PlayerType.Observer)
                 return;
-            GameServerPacket win = new GameServerPacket(GameMessage.Win);
+            GamePacketWriter win = GamePacketFactory.Create(GameMessage.Win);
             int team = player.Type;
             if (IsTag)
                 team = player.Type >= 2 ? 1 : 0;
@@ -717,14 +718,14 @@ namespace YGOSharp
         public void RefreshMonsters(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, useCache);
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
             update.Write(result);
             if (observer == null)
                 SendToTeam(update, player);
 
-            update = new GameServerPacket(GameMessage.UpdateData);
+            update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
 
@@ -760,14 +761,14 @@ namespace YGOSharp
         public void RefreshSpells(int player, int flag = 0x681fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, useCache);
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
             update.Write(result);
             if (observer == null)
                 SendToTeam(update, player);
 
-            update = new GameServerPacket(GameMessage.UpdateData);
+            update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
 
@@ -803,14 +804,14 @@ namespace YGOSharp
         public void RefreshHand(int player, int flag = 0x181fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, useCache);
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
             update.Write(result);
             if (observer == null)
                 CurPlayers[player].Send(update);
 
-            update = new GameServerPacket(GameMessage.UpdateData);
+            update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
 
@@ -841,7 +842,7 @@ namespace YGOSharp
         public void RefreshGrave(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, useCache);
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
             update.Write(result);
@@ -854,7 +855,7 @@ namespace YGOSharp
         public void RefreshExtra(int player, int flag = 0x81fff, bool useCache = true)
         {
             byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, useCache);
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateData);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Extra);
             update.Write(result);
@@ -868,7 +869,7 @@ namespace YGOSharp
             if (location == (int)CardLocation.Removed && (result[15] & (int)CardPosition.FaceDown) != 0)
                 return;
 
-            GameServerPacket update = new GameServerPacket(GameMessage.UpdateCard);
+            GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateCard);
             update.Write((byte)player);
             update.Write((byte)location);
             update.Write((byte)sequence);
@@ -907,9 +908,9 @@ namespace YGOSharp
         {
             _lastresponse = player;
             CurPlayers[player].State = PlayerState.Response;
-            SendToAllBut(new GameServerPacket(GameMessage.Waiting), player);
+            SendToAllBut(GamePacketFactory.Create(GameMessage.Waiting), player);
             TimeStart();
-            GameServerPacket packet = new GameServerPacket(StocMessage.TimeLimit);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.TimeLimit);
             packet.Write((byte)player);
             packet.Write((byte)0); // C++ padding
             packet.Write((short)_timelimit[player]);
@@ -951,7 +952,7 @@ namespace YGOSharp
                 {
                     Replay.End();
                     byte[] replayData = Replay.GetContent();
-                    GameServerPacket packet = new GameServerPacket(StocMessage.Replay);
+                    GamePacketWriter packet = new GamePacketWriter(StocMessage.Replay);
                     packet.Write(replayData);
                     SendToAll(packet);
                 }
@@ -999,8 +1000,8 @@ namespace YGOSharp
                 IsReady[1] = false;
                 State = GameState.Side;
                 SideTimer = DateTime.UtcNow;
-                SendToPlayers(new GameServerPacket(StocMessage.ChangeSide));
-                SendToObservers(new GameServerPacket(StocMessage.WaitingSide));
+                SendToPlayers(new GamePacketWriter(StocMessage.ChangeSide));
+                SendToObservers(new GamePacketWriter(StocMessage.WaitingSide));
             }
             else
             {
@@ -1013,7 +1014,7 @@ namespace YGOSharp
         {
             State = GameState.End;
 
-            SendToAll(new GameServerPacket(StocMessage.DuelEnd));
+            SendToAll(new GamePacketWriter(StocMessage.DuelEnd));
             _server.StopDelayed();
 
             if (OnGameEnd != null)
@@ -1141,7 +1142,7 @@ namespace YGOSharp
                 IsTpSelect = true;
                 TpTimer = DateTime.UtcNow;
                 TimeReset();
-                Players[_startplayer].Send(new GameServerPacket(StocMessage.SelectTp));
+                Players[_startplayer].Send(new GamePacketWriter(StocMessage.SelectTp));
             }
         }
 
@@ -1158,7 +1159,7 @@ namespace YGOSharp
         private void SendHand()
         {
             RpsTimer = DateTime.UtcNow;
-            GameServerPacket hand = new GameServerPacket(StocMessage.SelectHand);
+            GamePacketWriter hand = new GamePacketWriter(StocMessage.SelectHand);
             if (IsTag)
             {
                 Players[0].Send(hand);
@@ -1184,7 +1185,7 @@ namespace YGOSharp
 
         private void SendJoinGame(Player player)
         {
-            GameServerPacket join = new GameServerPacket(StocMessage.JoinGame);
+            GamePacketWriter join = new GamePacketWriter(StocMessage.JoinGame);
             join.Write(Banlist == null ? 0U : Banlist.Hash);
             join.Write((byte)Config.GetInt("Rule"));
             join.Write((byte)Config.GetInt("Mode"));
@@ -1208,7 +1209,7 @@ namespace YGOSharp
         {
             for (int i = 0; i < Players.Length; i++)
             {
-                GameServerPacket enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+                GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
                 int id = i;
                 if (_swapped)
                 {
@@ -1232,7 +1233,7 @@ namespace YGOSharp
 
         private void InitNewSpectator(Player player)
         {
-            GameServerPacket packet = new GameServerPacket(GameMessage.Start);
+            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.Start);
             packet.Write((byte)(_swapped ? 0x11 : 0x10));
             packet.Write(LifePoints[0]);
             packet.Write(LifePoints[1]);
@@ -1242,17 +1243,17 @@ namespace YGOSharp
             packet.Write((short)0);  // extra
             player.Send(packet);
             
-            GameServerPacket turn = new GameServerPacket(GameMessage.NewTurn);
+            GamePacketWriter turn = GamePacketFactory.Create(GameMessage.NewTurn);
             turn.Write((byte)0);
             player.Send(turn);
             if (CurrentPlayer == 1)
             {
-                turn = new GameServerPacket(GameMessage.NewTurn);
+                turn = GamePacketFactory.Create(GameMessage.NewTurn);
                 turn.Write((byte)0);
                 player.Send(turn);
             }
 
-            GameServerPacket reload = new GameServerPacket(GameMessage.ReloadField);
+            GamePacketWriter reload = GamePacketFactory.Create(GameMessage.ReloadField);
             byte[] fieldInfo = _duel.QueryFieldInfo();
             reload.Write(fieldInfo, 1, fieldInfo.Length - 1);
             player.Send(reload);
@@ -1262,7 +1263,7 @@ namespace YGOSharp
         
         private void HandleError(string error)
         {
-            GameServerPacket packet = new GameServerPacket(StocMessage.Chat);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.Chat);
             packet.Write((short)PlayerType.Observer);
             packet.Write(error, error.Length + 1);
             SendToAll(packet);

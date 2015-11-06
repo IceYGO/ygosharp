@@ -1,4 +1,5 @@
-﻿using YGOSharp.Enums;
+﻿using YGOSharp.Network;
+using YGOSharp.Network.Enums;
 
 namespace YGOSharp
 {
@@ -14,18 +15,18 @@ namespace YGOSharp
         private CoreClient _client;
         private bool _isError;
 
-        public Player(CoreClient client)
+        public Player(Game game, CoreClient client)
         {
-            Game = client.Game;
+            Game = game;
             Type = (int)PlayerType.Undefined;
             State = PlayerState.None;
             _client = client;
             TurnSkip = 0;
         }
 
-        public void Send(GameServerPacket packet)
+        public void Send(GamePacketWriter packet)
         {
-            _client.Send(packet.GetContent());
+            _client.Send(packet);
         }
 
         public void Disconnect()
@@ -41,7 +42,7 @@ namespace YGOSharp
 
         public void SendTypeChange()
         {
-            GameServerPacket packet = new GameServerPacket(StocMessage.TypeChange);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.TypeChange);
             packet.Write((byte)(Type + (Game.HostPlayer.Equals(this) ? (int)PlayerType.Host : 0)));
             Send(packet);
         }
@@ -50,7 +51,7 @@ namespace YGOSharp
         {
             _isError = true;
 
-            GameServerPacket join = new GameServerPacket(StocMessage.JoinGame);
+            GamePacketWriter join = new GamePacketWriter(StocMessage.JoinGame);
             join.Write(0U);
             join.Write((byte)0);
             join.Write((byte)0);
@@ -66,16 +67,16 @@ namespace YGOSharp
             join.Write(0);
             Send(join);
 
-            GameServerPacket packet = new GameServerPacket(StocMessage.TypeChange);
+            GamePacketWriter packet = new GamePacketWriter(StocMessage.TypeChange);
             packet.Write((byte)(0));
             Send(packet);
 
-            GameServerPacket enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+            GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
             enter.Write("[Error occurred]:", 20);
             enter.Write((byte)0);
             Send(enter);
 
-            enter = new GameServerPacket(StocMessage.HsPlayerEnter);
+            enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
             enter.Write(message, 20);
             enter.Write((byte)1);
             Send(enter);
@@ -86,7 +87,7 @@ namespace YGOSharp
             return ReferenceEquals(this, player);
         }
 
-        public void Parse(GameClientPacket packet)
+        public void Parse(GamePacketReader packet)
         {
             if (_isError)
                 return;
@@ -147,14 +148,14 @@ namespace YGOSharp
             }
         }
 
-        private void OnPlayerInfo(GameClientPacket packet)
+        private void OnPlayerInfo(GamePacketReader packet)
         {
             if (Name != null)
                 return;
             Name = packet.ReadUnicode(20);
         }
 
-        private void OnJoinGame(GameClientPacket packet)
+        private void OnJoinGame(GamePacketReader packet)
         {
             if (Name == null || Type != (int)PlayerType.Undefined)
                 return;
@@ -170,31 +171,31 @@ namespace YGOSharp
             IsAuthentified = true;
         }
 
-        private void OnChat(GameClientPacket packet)
+        private void OnChat(GamePacketReader packet)
         {
             string msg = packet.ReadUnicode(256);
             Game.Chat(this, msg);
         }
 
-        private void OnKick(GameClientPacket packet)
+        private void OnKick(GamePacketReader packet)
         {
             int pos = packet.ReadByte();
             Game.KickPlayer(this, pos);
         }
 
-        private void OnHandResult(GameClientPacket packet)
+        private void OnHandResult(GamePacketReader packet)
         {
             int res = packet.ReadByte();
             Game.HandResult(this, res);
         }
 
-        private void OnTpResult(GameClientPacket packet)
+        private void OnTpResult(GamePacketReader packet)
         {
             bool tp = packet.ReadByte() != 0;
             Game.TpResult(this, tp);
         }
 
-        private void OnUpdateDeck(GameClientPacket packet)
+        private void OnUpdateDeck(GamePacketReader packet)
         {
             if (Type == (int)PlayerType.Observer)
                 return;
@@ -217,7 +218,7 @@ namespace YGOSharp
                     return;
                 if (!Deck.Check(deck))
                 {
-                    GameServerPacket error = new GameServerPacket(StocMessage.ErrorMsg);
+                    GamePacketWriter error = new GamePacketWriter(StocMessage.ErrorMsg);
                     error.Write((byte)3);
                     error.Write(0);
                     Send(error);
@@ -225,12 +226,12 @@ namespace YGOSharp
                 }
                 Deck = deck;
                 Game.IsReady[Type] = true;
-                Send(new GameServerPacket(StocMessage.DuelStart));
+                Send(new GamePacketWriter(StocMessage.DuelStart));
                 Game.MatchSide();
             }
         }
 
-        private void OnResponse(GameClientPacket packet)
+        private void OnResponse(GamePacketReader packet)
         {
             if (Game.State != GameState.Duel)
                 return;

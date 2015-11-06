@@ -1,26 +1,23 @@
 ﻿using System.IO;
-using OCGWrapper.Enums;
-using YGOSharp.Enums;
+using YGOSharp.Network.Enums;
+using YGOSharp.Network.Utils;
 
-namespace YGOSharp
+namespace YGOSharp.Network
 {
-    public class GameServerPacket
+    public class GamePacketWriter
     {
         private BinaryWriter _writer;
         private MemoryStream _stream;
 
-        public GameServerPacket(StocMessage message)
+        public GamePacketWriter(CtosMessage message)
         {
-            _stream = new MemoryStream();
-            _writer = new BinaryWriter(_stream);
+            InitializeStream();
             _writer.Write((byte)message);
         }
 
-        public GameServerPacket(GameMessage message)
+        public GamePacketWriter(StocMessage message)
         {
-            _stream = new MemoryStream();
-            _writer = new BinaryWriter(_stream);
-            _writer.Write((byte)(StocMessage.GameMsg));
+            InitializeStream();
             _writer.Write((byte)message);
         }
 
@@ -82,6 +79,12 @@ namespace YGOSharp
         public void SetPosition(long pos)
         {
             _stream.Position = pos;
+        }
+
+        private void InitializeStream()
+        {
+            _stream = new MemoryStream();
+            _writer = new BinaryWriter(_stream);
         }
     }
 }

@@ -1,15 +1,16 @@
 ﻿using System.IO;
-using YGOSharp.Enums;
+using YGOSharp.Network.Enums;
+using YGOSharp.Network.Utils;
 
-namespace YGOSharp
+namespace YGOSharp.Network
 {
-    public class GameClientPacket
+    public class GamePacketReader
     {
         public byte[] Content { get; private set; }
 
         private BinaryReader _reader;
 
-        public GameClientPacket(byte[] content)
+        public GamePacketReader(byte[] content)
         {
             Content = content;
             _reader = new BinaryReader(new MemoryStream(Content));
@@ -18,6 +19,11 @@ namespace YGOSharp
         public CtosMessage ReadCtos()
         {
             return (CtosMessage)_reader.ReadByte();
+        }
+
+        public StocMessage ReadStoc()
+        {
+            return (StocMessage)_reader.ReadByte();
         }
 
         public byte ReadByte()

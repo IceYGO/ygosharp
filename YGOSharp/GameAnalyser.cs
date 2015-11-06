@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using OCGWrapper.Enums;
+using YGOSharp.Network;
 
 namespace YGOSharp
 {
@@ -233,7 +234,7 @@ namespace YGOSharp
         private void OnRetry()
         {
             int player = Game.WaitForResponse();
-            Game.CurPlayers[player].Send(new GameServerPacket(GameMessage.Retry));
+            Game.CurPlayers[player].Send(GamePacketFactory.Create(GameMessage.Retry));
 
             Game.Replay.End();
             //File.WriteAllBytes("error_" + DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss") + ".yrp", Game.Replay.GetFile());
@@ -246,7 +247,7 @@ namespace YGOSharp
             msg.Reader.ReadInt32();
 
             byte[] buffer = msg.CreateBuffer();
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
 
             switch (type)
@@ -341,7 +342,7 @@ namespace YGOSharp
 
         private void OnSelectCard(CoreMessage msg)
         {
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
 
             int player = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -438,7 +439,7 @@ namespace YGOSharp
             msg.Reader.ReadBytes(count * 7);
 
             byte[] buffer = msg.CreateBuffer();
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             if ((CardLocation)buffer[7] == CardLocation.Hand)
                 Game.SendToAll(packet);
@@ -448,7 +449,7 @@ namespace YGOSharp
 
         private void OnShuffleHand(CoreMessage msg)
         {
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -525,7 +526,7 @@ namespace YGOSharp
             int cp = raw[11];
 
             SendToPlayer(msg, cc);
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(raw);
             if (!Convert.ToBoolean((cl & ((int)CardLocation.Grave + (int)CardLocation.Overlay))) && Convert.ToBoolean((cl & ((int)CardLocation.Deck + (int)CardLocation.Hand)))
                 || Convert.ToBoolean((cp & (int)CardPosition.FaceDown)))
@@ -557,7 +558,7 @@ namespace YGOSharp
         {
             msg.Reader.ReadBytes(4);
             byte[] raw = msg.Reader.ReadBytes(4);
-            GameServerPacket packet = new GameServerPacket(GameMessage.Set);
+            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.Set);
             packet.Write(0);
             packet.Write(raw);
             Game.SendToAll(packet);
@@ -594,7 +595,7 @@ namespace YGOSharp
 
         private void OnDraw(CoreMessage msg)
         {
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -696,7 +697,7 @@ namespace YGOSharp
 
         private void OnTagSwap(CoreMessage msg)
         {
-            GameServerPacket packet = new GameServerPacket(GameMessage.TagSwap);
+            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.TagSwap);
 
             int player = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -734,7 +735,7 @@ namespace YGOSharp
         private void SendToAll(CoreMessage msg)
         {
             byte[] buffer = msg.CreateBuffer();
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             Game.SendToAll(packet);
         }
@@ -743,7 +744,7 @@ namespace YGOSharp
         {
             if (length == 0)
             {
-                Game.SendToAll(new GameServerPacket(msg.Message));
+                Game.SendToAll(GamePacketFactory.Create(msg.Message));
                 return;
             }
             msg.Reader.ReadBytes(length);
@@ -755,7 +756,7 @@ namespace YGOSharp
             if (player != 0 && player != 1)
                 return;
             byte[] buffer = msg.CreateBuffer();
-            GameServerPacket packet = new GameServerPacket(msg.Message);
+            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             Game.CurPlayers[player].Send(packet);
         }

@@ -1,5 +1,5 @@
 ﻿using System;
-using YGOSharp.Enums;
+using YGOSharp.Network.Enums;
 
 namespace YGOSharp.Addons
 {

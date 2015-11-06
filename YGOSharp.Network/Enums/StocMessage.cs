@@ -1,4 +1,4 @@
-﻿namespace YGOSharp.Enums
+﻿namespace YGOSharp.Network.Enums
 {
     public enum StocMessage
     {
@@ -21,7 +21,6 @@
         Chat = 0x19,
         HsPlayerEnter = 0x20,
         HsPlayerChange = 0x21,
-        HsWatchChange = 0x22,
-        UpdateTexture = 0x30
+        HsWatchChange = 0x22
     }
 }

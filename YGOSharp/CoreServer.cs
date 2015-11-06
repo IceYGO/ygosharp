@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using YGOSharp.Network;
 
 namespace YGOSharp
 {
@@ -16,14 +17,12 @@ namespace YGOSharp
 
         private TcpListener _listener;
         private readonly List<CoreClient> _clients;
-        private readonly List<CoreClient> _removedClients;
 
         private bool _closePending;
 
         public CoreServer()
         {
             _clients = new List<CoreClient>();
-            _removedClients = new List<CoreClient>();
         }
 
         public void Start()
@@ -69,33 +68,40 @@ namespace YGOSharp
         {
             _closePending = true;
             foreach (CoreClient client in _clients)
-                client.CloseDelayed();
+                client.Close();
         }
 
         public void AddClient(CoreClient client)
         {
             _clients.Add(client);
+            Player player = new Player(Game, client);
+            client.MessageReceived += (sender, e) => player.Parse(e.Message);
+            client.Closed += (sender, e) => player.OnDisconnected();
         }
-
-        public void RemoveClient(CoreClient client)
-        {
-            _removedClients.Add(client);
-        }
-
+        
         public void Tick()
         {
             while (IsListening && _listener.Pending())
-                AddClient(new CoreClient(this, _listener.AcceptTcpClient()));
+                AddClient(new CoreClient(_listener.AcceptTcpClient()));
+
+            List<CoreClient> disconnectedClients = new List<CoreClient>();
 
             foreach (CoreClient client in _clients)
-                client.Tick();
+            {
+                client.UpdateNetwork();
+                client.Update();
+                if (!client.IsConnected)
+                {
+                    disconnectedClients.Add(client);
+                }
+            }
 
             Game.TimeTick();
 
-            while (_removedClients.Count > 0)
+            while (disconnectedClients.Count > 0)
             {
-                _clients.Remove(_removedClients[0]);
-                _removedClients.RemoveAt(0);
+                _clients.Remove(disconnectedClients[0]);
+                disconnectedClients.RemoveAt(0);
             }
 
             if (_closePending && _clients.Count == 0)
