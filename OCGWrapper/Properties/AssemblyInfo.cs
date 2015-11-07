@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -8,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("OCGWrapper")]
 [assembly: AssemblyDescription("A C# wrapper for the ocgcore library.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Ice")]
+[assembly: AssemblyCompany("IceYGO")]
 [assembly: AssemblyProduct("OCGWrapper")]
-[assembly: AssemblyCopyright("Copyright © Ice 2015")]
+[assembly: AssemblyCopyright("Copyright © IceYGO 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -8,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("YGOSharp")]
 [assembly: AssemblyDescription("A C# implementation of an ygopro duel server.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Ice")]
+[assembly: AssemblyCompany("IceYGO")]
 [assembly: AssemblyProduct("YGOSharp")]
-[assembly: AssemblyCopyright("Copyright © Ice 2015")]
+[assembly: AssemblyCopyright("Copyright © IceYGO 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
