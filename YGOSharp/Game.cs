@@ -731,21 +731,24 @@ namespace YGOSharp
 
             MemoryStream ms = new MemoryStream(result);
             BinaryReader reader = new BinaryReader(ms);
-            BinaryWriter writer = new BinaryWriter(ms);
             for (int i = 0; i < 5; i++)
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
                     continue;
-                long pos = ms.Position;
+
                 byte[] raw = reader.ReadBytes(len - 4);
-                if ((raw[11] & (int)CardPosition.FaceDown) != 0)
+                if ((raw[11] & (int) CardPosition.FaceDown) != 0)
                 {
-                    ms.Position = pos + 4;
-                    writer.Write(new byte[len - 8]);
+                    update.Write(8);
+                    update.Write(0);
+                }
+                else
+                {
+                    update.Write(len);
+                    update.Write(raw);
                 }
             }
-            update.Write(result);
 
             if (observer == null)
             {
@@ -774,21 +777,24 @@ namespace YGOSharp
 
             MemoryStream ms = new MemoryStream(result);
             BinaryReader reader = new BinaryReader(ms);
-            BinaryWriter writer = new BinaryWriter(ms);
             for (int i = 0; i < 8; i++)
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
                     continue;
-                long pos = ms.Position;
+
                 byte[] raw = reader.ReadBytes(len - 4);
                 if ((raw[11] & (int)CardPosition.FaceDown) != 0)
                 {
-                    ms.Position = pos + 4;
-                    writer.Write(new byte[len - 8]);
+                    update.Write(8);
+                    update.Write(0);
+                }
+                else
+                {
+                    update.Write(len);
+                    update.Write(raw);
                 }
             }
-            update.Write(result);
 
             if (observer == null)
             {
@@ -817,21 +823,24 @@ namespace YGOSharp
 
             MemoryStream ms = new MemoryStream(result);
             BinaryReader reader = new BinaryReader(ms);
-            BinaryWriter writer = new BinaryWriter(ms);
             while (ms.Position < ms.Length)
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
                     continue;
-                long pos = ms.Position;
+
                 byte[] raw = reader.ReadBytes(len - 4);
                 if (raw[len - 8] == 0)
                 {
-                    ms.Position = pos + 4;
-                    writer.Write(new byte[len - 8]);
+                    update.Write(8);
+                    update.Write(0);
+                }
+                else
+                {
+                    update.Write(len);
+                    update.Write(raw);
                 }
             }
-            update.Write(result);
 
             if (observer == null)
                 SendToAllBut(update, player);
