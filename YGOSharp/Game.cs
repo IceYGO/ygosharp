@@ -735,10 +735,13 @@ namespace YGOSharp
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
+                {
+                    update.Write(4);
                     continue;
+                }
 
                 byte[] raw = reader.ReadBytes(len - 4);
-                if ((raw[11] & (int) CardPosition.FaceDown) != 0)
+                if ((raw[11] & (int)CardPosition.FaceDown) != 0)
                 {
                     update.Write(8);
                     update.Write(0);
@@ -781,7 +784,10 @@ namespace YGOSharp
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
+                {
+                    update.Write(4);
                     continue;
+                }
 
                 byte[] raw = reader.ReadBytes(len - 4);
                 if ((raw[11] & (int)CardPosition.FaceDown) != 0)
@@ -827,7 +833,10 @@ namespace YGOSharp
             {
                 int len = reader.ReadInt32();
                 if (len == 4)
+                {
+                    update.Write(4);
                     continue;
+                }
 
                 byte[] raw = reader.ReadBytes(len - 4);
                 if (raw[len - 8] == 0)
