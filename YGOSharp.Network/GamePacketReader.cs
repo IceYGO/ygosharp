@@ -16,6 +16,26 @@ namespace YGOSharp.Network
             _reader = new BinaryReader(new MemoryStream(Content));
         }
 
+        public long Position
+        {
+            get
+            {
+                return _reader.BaseStream.Position;
+            }
+            set
+            {
+                _reader.BaseStream.Position = value;
+            }
+        }
+
+        public long Length
+        {
+            get
+            {
+                return _reader.BaseStream.Length;
+            }
+        }
+
         public CtosMessage ReadCtos()
         {
             return (CtosMessage)_reader.ReadByte();
@@ -31,14 +51,24 @@ namespace YGOSharp.Network
             return _reader.ReadByte();
         }
 
+        public byte[] ReadBytes(int count)
+        {
+            return _reader.ReadBytes(count);
+        }
+
         public byte[] ReadToEnd()
         {
-            return _reader.ReadBytes((int)_reader.BaseStream.Length - (int)_reader.BaseStream.Position);
+            return _reader.ReadBytes((int)(Length - Position));
         }
 
         public sbyte ReadSByte()
         {
             return _reader.ReadSByte();
+        }
+
+        public bool ReadBool()
+        {
+            return _reader.ReadByte() != 0;
         }
 
         public short ReadInt16()
@@ -54,16 +84,6 @@ namespace YGOSharp.Network
         public string ReadUnicode(int len)
         {
             return _reader.ReadUnicode(len);
-        }
-
-        public long GetPosition()
-        {
-            return _reader.BaseStream.Position;
-        }
-
-        public void SetPosition(long pos)
-        {
-            _reader.BaseStream.Position = pos;
         }
     }
 }
