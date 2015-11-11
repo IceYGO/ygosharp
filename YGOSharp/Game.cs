@@ -741,8 +741,8 @@ namespace YGOSharp
                 byte[] raw = reader.ReadBytes(len - 4);
                 if ((raw[11] & (int)CardPosition.FaceDown) != 0)
                 {
-                    ms.Position = pos;
-                    writer.Write(new byte[len - 4]);
+                    ms.Position = pos + 4;
+                    writer.Write(new byte[len - 8]);
                 }
             }
             update.Write(result);
@@ -784,8 +784,8 @@ namespace YGOSharp
                 byte[] raw = reader.ReadBytes(len - 4);
                 if ((raw[11] & (int)CardPosition.FaceDown) != 0)
                 {
-                    ms.Position = pos;
-                    writer.Write(new byte[len - 4]);
+                    ms.Position = pos + 4;
+                    writer.Write(new byte[len - 8]);
                 }
             }
             update.Write(result);
@@ -827,8 +827,8 @@ namespace YGOSharp
                 byte[] raw = reader.ReadBytes(len - 4);
                 if (raw[len - 8] == 0)
                 {
-                    ms.Position = pos;
-                    writer.Write(new byte[len - 4]);
+                    ms.Position = pos + 4;
+                    writer.Write(new byte[len - 8]);
                 }
             }
             update.Write(result);
