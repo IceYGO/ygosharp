@@ -411,6 +411,8 @@ namespace YGOSharp
             msg.Reader.ReadBytes(6);
             int count = msg.Reader.ReadByte();
             msg.Reader.ReadBytes(count * 11);
+            count = msg.Reader.ReadByte();
+            msg.Reader.ReadBytes(count * 11);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }
@@ -510,7 +512,7 @@ namespace YGOSharp
 
         private void OnNewPhase(CoreMessage msg)
         {
-            msg.Reader.ReadByte();
+            msg.Reader.ReadInt16();
             SendToAll(msg);
             Game.RefreshAll();
         }
