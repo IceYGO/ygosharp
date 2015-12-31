@@ -22,9 +22,9 @@ namespace YGOSharp
             Card card = Card.Get(cardId);
             if (card == null)
                 return;
-            if ((card.Data.Type & (int)CardType.Token) != 0)
+            if ((card.Type & (int)CardType.Token) != 0)
                 return;
-            if ((card.Data.Type & 0x802040) != 0)
+            if ((card.Type & 0x802040) != 0)
             {
                 if (Extra.Count < 15)
                     Extra.Add(cardId);
@@ -41,7 +41,7 @@ namespace YGOSharp
             Card card = Card.Get(cardId);
             if (card == null)
                 return;
-            if ((card.Data.Type & (int)CardType.Token) != 0)
+            if ((card.Type & (int)CardType.Token) != 0)
                 return;
             if (Side.Count < 15)
                 Side.Add(cardId);
@@ -124,8 +124,8 @@ namespace YGOSharp
         private static void AddToCards(IDictionary<int, int> cards, Card card)
         {
             int id = card.Id;
-            if (card.Data.Alias != 0)
-                id = card.Data.Alias;
+            if (card.Alias != 0)
+                id = card.Alias;
             if (cards.ContainsKey(id))
                 cards[id]++;
             else

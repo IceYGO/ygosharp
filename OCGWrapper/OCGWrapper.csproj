@@ -55,6 +55,8 @@
     <Compile Include="Enums\GameMessage.cs" />
     <Compile Include="Enums\Query.cs" />
     <Compile Include="MtRandom.cs" />
+    <Compile Include="NamedCard.cs" />
+    <Compile Include="NamedCardsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

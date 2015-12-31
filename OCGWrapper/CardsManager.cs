@@ -38,27 +38,8 @@ namespace OCGWrapper
 
         private static void LoadCard(IDataRecord reader)
         {
-            int id = reader.GetInt32(0);
-            int ot = reader.GetInt32(1);
-            int levelinfo = reader.GetInt32(5);
-            int level = levelinfo & 0xff;
-            int lscale = (levelinfo >> 24) & 0xff;
-            int rscale = (levelinfo >> 16) & 0xff;
-            Card.CardData data = new Card.CardData
-            {
-                Code = id,
-                Alias = reader.GetInt32(2),
-                Setcode = reader.GetInt64(3),
-                Type = reader.GetInt32(4),
-                Level = level,
-                LScale = lscale,
-                RScale = rscale,
-                Race = reader.GetInt32(6),
-                Attribute = reader.GetInt32(7),
-                Attack = reader.GetInt32(8),
-                Defense = reader.GetInt32(9)
-            };
-            _cards.Add(id, new Card(data, ot));
+            Card card = new Card(reader);
+            _cards.Add(card.Id, card);
         }
     }
 }
