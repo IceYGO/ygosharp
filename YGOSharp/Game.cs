@@ -675,9 +675,10 @@ namespace YGOSharp
 
         public void Surrender(Player player, int reason, bool force = false)
         {
-            if(!force)
-                if (State != GameState.Duel)
-                    return;
+            if (State == GameState.End)
+                return;
+            if (!force && State != GameState.Duel)
+                return;
             if (player.Type == (int)PlayerType.Observer)
                 return;
             GamePacketWriter win = GamePacketFactory.Create(GameMessage.Win);
