@@ -463,7 +463,7 @@ namespace YGOSharp
 
             SendToPlayer(msg, player);
             Game.SendToAllBut(packet, player);
-            Game.RefreshHand(player, 0x181fff, false);
+            Game.RefreshHand(player, 0x181fff);
         }
 
         private void OnSwapGraveDeck(CoreMessage msg)
@@ -478,8 +478,8 @@ namespace YGOSharp
             int count = msg.Reader.ReadByte();
             msg.Reader.ReadBytes(count * 8);
             SendToAll(msg);
-            Game.RefreshMonsters(0, 0x181fff, false);
-            Game.RefreshMonsters(1, 0x181fff, false);
+            Game.RefreshMonsters(0, 0x181fff);
+            Game.RefreshMonsters(1, 0x181fff);
         }
 
         private void OnNewTurn(CoreMessage msg)
@@ -726,12 +726,12 @@ namespace YGOSharp
             Game.SendToAllBut(packet, player);
 
             Game.RefreshExtra(player);
-            Game.RefreshMonsters(0, 0x81fff, false);
-            Game.RefreshMonsters(1, 0x81fff, false);
-            Game.RefreshSpells(0, 0x681fff, false);
-            Game.RefreshSpells(1, 0x681fff, false);
-            Game.RefreshHand(0, 0x181fff, false);
-            Game.RefreshHand(1, 0x181fff, false);
+            Game.RefreshMonsters(0, 0x81fff);
+            Game.RefreshMonsters(1, 0x81fff);
+            Game.RefreshSpells(0, 0x681fff);
+            Game.RefreshSpells(1, 0x681fff);
+            Game.RefreshHand(0, 0x181fff);
+            Game.RefreshHand(1, 0x181fff);
         }
 
         private void SendToAll(CoreMessage msg)

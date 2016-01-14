@@ -708,17 +708,17 @@ namespace YGOSharp
 
         public void RefreshAllObserver(Player observer)
         {
-            RefreshMonsters(0, useCache: false, observer: observer);
-            RefreshMonsters(1, useCache: false, observer: observer);
-            RefreshSpells(0, useCache: false, observer: observer);
-            RefreshSpells(1, useCache: false, observer: observer);
-            RefreshHand(0, useCache: false, observer: observer);
-            RefreshHand(1, useCache: false, observer: observer);
+            RefreshMonsters(0, observer: observer);
+            RefreshMonsters(1, observer: observer);
+            RefreshSpells(0, observer: observer);
+            RefreshSpells(1, observer: observer);
+            RefreshHand(0, observer: observer);
+            RefreshHand(1, observer: observer);
         }
 
-        public void RefreshMonsters(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
+        public void RefreshMonsters(int player, int flag = 0x81fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
@@ -765,9 +765,9 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshSpells(int player, int flag = 0x681fff, bool useCache = true, Player observer = null)
+        public void RefreshSpells(int player, int flag = 0x681fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
@@ -814,9 +814,9 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshHand(int player, int flag = 0x181fff, bool useCache = true, Player observer = null)
+        public void RefreshHand(int player, int flag = 0x181fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
@@ -858,9 +858,9 @@ namespace YGOSharp
                 observer.Send(update);
         }
 
-        public void RefreshGrave(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
+        public void RefreshGrave(int player, int flag = 0x81fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
@@ -871,9 +871,9 @@ namespace YGOSharp
                 observer.Send(update);
         }
 
-        public void RefreshExtra(int player, int flag = 0x81fff, bool useCache = true)
+        public void RefreshExtra(int player, int flag = 0x81fff)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Extra);
