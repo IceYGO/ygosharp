@@ -965,6 +965,11 @@ namespace YGOSharp
 
         public void EndDuel(bool force)
         {
+            if (State == GameState.End)
+            {
+                return;
+            }
+
             if (State == GameState.Duel)
             {
                 if (!Replay.Disabled)
@@ -976,7 +981,6 @@ namespace YGOSharp
                     SendToAll(packet);
                 }
 
-                State = GameState.End;
                 _duel.End();
             }
 
@@ -1006,11 +1010,6 @@ namespace YGOSharp
                     Players[0].Type = 0;
                     Players[1].Type = 1;
                 }
-            }
-
-            if (OnDuelEnd != null)
-            {
-                OnDuelEnd(this, EventArgs.Empty);
             }
 
             if (IsMatch && !force && !MatchIsEnd())
@@ -1087,9 +1086,7 @@ namespace YGOSharp
                 {
                     if (!IsReady[0] && !IsReady[1])
                     {
-                        State = GameState.End;
-                        CalculateWinner();
-                        End();
+                        EndDuel(true);
                         return;
                     }
 
@@ -1121,7 +1118,7 @@ namespace YGOSharp
                     else if (_handResult[1] != 0)
                         Surrender(Players[0], 3, true);
                     else
-                        End();
+                        EndDuel(true);
                 }
             }
         }
@@ -1136,6 +1133,11 @@ namespace YGOSharp
                 _startplayer = 1 - _startplayer;
             MatchResults[DuelCount] = player;
             MatchReasons[DuelCount++] = reason;
+            
+            if (OnDuelEnd != null)
+            {
+                OnDuelEnd(this, EventArgs.Empty);
+            }
         }
 
         public void MatchKill()
@@ -1194,7 +1196,7 @@ namespace YGOSharp
             switch (result)
             {
                 case -1:
-                    _server.Stop();
+                    EndDuel(true);
                     break;
                 case 2: // Game finished
                     EndDuel(false);
