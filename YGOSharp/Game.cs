@@ -1074,7 +1074,7 @@ namespace YGOSharp
                     TimeSpan elapsed = DateTime.UtcNow - _time.Value;
                     if ((int)elapsed.TotalSeconds > _timelimit[_lastresponse])
                     {
-                        Surrender(Players[_lastresponse], 3);
+                        Surrender(CurPlayers[_lastresponse], 3);
                     }
                 }
             }
@@ -1105,7 +1105,7 @@ namespace YGOSharp
 
                     if (elapsed.TotalMilliseconds >= 30000)
                     {
-                        Surrender(Players[_startplayer], 3, true);
+                        Surrender(CurPlayers[_startplayer], 3, true);
                     }
 
                 }
@@ -1117,7 +1117,7 @@ namespace YGOSharp
                 if ((int)elapsed.TotalMilliseconds >= 60000)
                 {
                     if (_handResult[0] != 0)
-                        Surrender(Players[1], 3, true);
+                        Surrender(Players[IsTag ? 2 : 1], 3, true);
                     else if (_handResult[1] != 0)
                         Surrender(Players[0], 3, true);
                     else
