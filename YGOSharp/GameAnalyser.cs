@@ -180,7 +180,7 @@ namespace YGOSharp
                     break;
                 case GameMessage.AddCounter:
                 case GameMessage.RemoveCounter:
-                    SendToAll(cmsg, 6);
+                    SendToAll(cmsg, 7);
                     break;
                 case GameMessage.Attack:
                     SendToAll(cmsg, 8);
