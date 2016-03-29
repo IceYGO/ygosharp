@@ -373,7 +373,7 @@ namespace YGOSharp
         {
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
-            msg.Reader.ReadBytes(10 + count * 11);
+            msg.Reader.ReadBytes(10 + count * 12);
 
             if (count > 0)
             {
