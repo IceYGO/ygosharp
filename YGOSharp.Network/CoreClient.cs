@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using YGOSharp.Network.Enums;
 
 namespace YGOSharp.Network
 {
@@ -57,6 +58,25 @@ namespace YGOSharp.Network
         public void Send(GamePacketWriter writer)
         {
             Send(writer.GetContent());
+        }
+
+        public void Send(CtosMessage message)
+        {
+            Send(new GamePacketWriter(message));
+        }
+
+        public void Send(CtosMessage message, byte value)
+        {
+            GamePacketWriter packet = new GamePacketWriter(message);
+            packet.Write(value);
+            Send(packet);
+        }
+
+        public void Send(CtosMessage message, int value)
+        {
+            GamePacketWriter packet = new GamePacketWriter(message);
+            packet.Write(value);
+            Send(packet);
         }
 
         public void Send(byte[] raw)

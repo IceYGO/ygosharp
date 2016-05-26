@@ -1,6 +1,6 @@
 [submodule "OCGCore/ygopro-core"]
 	path = OCGCore/ygopro-core
-	url = https://github.com/Fluorohydride/ygopro-core/
+	url = https://github.com/IceYGO/ygopro-core/
 [submodule "OCGCore/lua"]
 	path = OCGCore/lua
 	url = https://github.com/lua/lua/

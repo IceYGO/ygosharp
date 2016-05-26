@@ -675,9 +675,10 @@ namespace YGOSharp
 
         public void Surrender(Player player, int reason, bool force = false)
         {
-            if(!force)
-                if (State != GameState.Duel)
-                    return;
+            if (State == GameState.End)
+                return;
+            if (!force && State != GameState.Duel)
+                return;
             if (player.Type == (int)PlayerType.Observer)
                 return;
             GamePacketWriter win = GamePacketFactory.Create(GameMessage.Win);
@@ -707,17 +708,17 @@ namespace YGOSharp
 
         public void RefreshAllObserver(Player observer)
         {
-            RefreshMonsters(0, useCache: false, observer: observer);
-            RefreshMonsters(1, useCache: false, observer: observer);
-            RefreshSpells(0, useCache: false, observer: observer);
-            RefreshSpells(1, useCache: false, observer: observer);
-            RefreshHand(0, useCache: false, observer: observer);
-            RefreshHand(1, useCache: false, observer: observer);
+            RefreshMonsters(0, observer: observer);
+            RefreshMonsters(1, observer: observer);
+            RefreshSpells(0, observer: observer);
+            RefreshSpells(1, observer: observer);
+            RefreshHand(0, observer: observer);
+            RefreshHand(1, observer: observer);
         }
 
-        public void RefreshMonsters(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
+        public void RefreshMonsters(int player, int flag = 0x81fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
@@ -764,9 +765,9 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshSpells(int player, int flag = 0x681fff, bool useCache = true, Player observer = null)
+        public void RefreshSpells(int player, int flag = 0x681fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
@@ -813,9 +814,9 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshHand(int player, int flag = 0x181fff, bool useCache = true, Player observer = null)
+        public void RefreshHand(int player, int flag = 0x181fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
@@ -857,9 +858,9 @@ namespace YGOSharp
                 observer.Send(update);
         }
 
-        public void RefreshGrave(int player, int flag = 0x81fff, bool useCache = true, Player observer = null)
+        public void RefreshGrave(int player, int flag = 0x81fff, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
@@ -870,9 +871,9 @@ namespace YGOSharp
                 observer.Send(update);
         }
 
-        public void RefreshExtra(int player, int flag = 0x81fff, bool useCache = true)
+        public void RefreshExtra(int player, int flag = 0x81fff)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, useCache);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, false);
             GamePacketWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
             update.Write((byte)CardLocation.Extra);
@@ -964,6 +965,11 @@ namespace YGOSharp
 
         public void EndDuel(bool force)
         {
+            if (State == GameState.End)
+            {
+                return;
+            }
+
             if (State == GameState.Duel)
             {
                 if (!Replay.Disabled)
@@ -975,7 +981,6 @@ namespace YGOSharp
                     SendToAll(packet);
                 }
 
-                State = GameState.End;
                 _duel.End();
             }
 
@@ -1005,11 +1010,6 @@ namespace YGOSharp
                     Players[0].Type = 0;
                     Players[1].Type = 1;
                 }
-            }
-
-            if (OnDuelEnd != null)
-            {
-                OnDuelEnd(this, EventArgs.Empty);
             }
 
             if (IsMatch && !force && !MatchIsEnd())
@@ -1073,7 +1073,7 @@ namespace YGOSharp
                     TimeSpan elapsed = DateTime.UtcNow - _time.Value;
                     if ((int)elapsed.TotalSeconds > _timelimit[_lastresponse])
                     {
-                        Surrender(Players[_lastresponse], 3);
+                        Surrender(CurPlayers[_lastresponse], 3);
                     }
                 }
             }
@@ -1086,9 +1086,7 @@ namespace YGOSharp
                 {
                     if (!IsReady[0] && !IsReady[1])
                     {
-                        State = GameState.End;
-                        CalculateWinner();
-                        End();
+                        EndDuel(true);
                         return;
                     }
 
@@ -1104,7 +1102,7 @@ namespace YGOSharp
 
                     if (elapsed.TotalMilliseconds >= 30000)
                     {
-                        Surrender(Players[_startplayer], 3, true);
+                        Surrender(CurPlayers[_startplayer], 3, true);
                     }
 
                 }
@@ -1116,11 +1114,11 @@ namespace YGOSharp
                 if ((int)elapsed.TotalMilliseconds >= 60000)
                 {
                     if (_handResult[0] != 0)
-                        Surrender(Players[1], 3, true);
+                        Surrender(Players[IsTag ? 2 : 1], 3, true);
                     else if (_handResult[1] != 0)
                         Surrender(Players[0], 3, true);
                     else
-                        End();
+                        EndDuel(true);
                 }
             }
         }
@@ -1135,6 +1133,11 @@ namespace YGOSharp
                 _startplayer = 1 - _startplayer;
             MatchResults[DuelCount] = player;
             MatchReasons[DuelCount++] = reason;
+            
+            if (OnDuelEnd != null)
+            {
+                OnDuelEnd(this, EventArgs.Empty);
+            }
         }
 
         public void MatchKill()
@@ -1193,7 +1196,7 @@ namespace YGOSharp
             switch (result)
             {
                 case -1:
-                    _server.Stop();
+                    EndDuel(true);
                     break;
                 case 2: // Game finished
                     EndDuel(false);

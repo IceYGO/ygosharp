@@ -104,7 +104,7 @@ namespace YGOSharp.Addons
 
         private void Game_OnDuelEnd(object sender, EventArgs e)
         {
-            Console.WriteLine("::::end-duel|" + Game.MatchResults[Game.DuelCount] + "|" + Game.MatchReasons[Game.DuelCount]);
+            Console.WriteLine("::::end-duel|" + Game.MatchResults[Game.DuelCount - 1] + "|" + Game.MatchReasons[Game.DuelCount - 1]);
         }
     }
 }
