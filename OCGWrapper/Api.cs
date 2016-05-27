@@ -67,7 +67,8 @@ namespace OCGWrapper
         #region Private Variables
 
         private static string _rootPath;
-        private static string _scriptDirectory;
+        private static string _primaryScriptDirectory;
+        private static string _secondaryScriptDirectory;
         private static IntPtr _buffer;
 
         private static ScriptReader _scriptCallback;
@@ -78,10 +79,11 @@ namespace OCGWrapper
 
         #region Public Functions
 
-        public static void Init(string rootPath = ".", string scriptDirectory = "script", string databaseFile = "cards.cdb")
+        public static void Init(string rootPath = ".", string primaryScriptDirectory = "script", string secondaryScriptDirectory = "script", string databaseFile = "cards.cdb")
         {
             _rootPath = rootPath;
-            _scriptDirectory = scriptDirectory;
+            _primaryScriptDirectory = primaryScriptDirectory;
+            _secondaryScriptDirectory = secondaryScriptDirectory;
 
             CardsManager.Init(Path.Combine(Path.GetFullPath(rootPath), databaseFile));
 
@@ -123,10 +125,14 @@ namespace OCGWrapper
 
         private static IntPtr OnScriptReader(String scriptName, Int32* len)
         {
-            string filename = GetScriptFilename(scriptName);
+            string filename = GetPrimaryScriptFilename(scriptName);
             if (!File.Exists(filename))
             {
-                return IntPtr.Zero;
+                filename = GetSecondaryScriptFilename(scriptName);
+                if (!File.Exists(filename))
+                {
+                    return IntPtr.Zero;
+                }
             }
             byte[] content = File.ReadAllBytes(filename);
             *len = content.Length;
@@ -148,9 +154,14 @@ namespace OCGWrapper
 
         #region Private Functions
 
-        private static string GetScriptFilename(string scriptName)
+        private static string GetPrimaryScriptFilename(string scriptName)
         {
-            return Path.Combine(_rootPath, scriptName.Replace("./script", _scriptDirectory));
+            return Path.Combine(_rootPath, scriptName.Replace("./script", _primaryScriptDirectory));
+        }
+
+        private static string GetSecondaryScriptFilename(string scriptName)
+        {
+            return Path.Combine(_rootPath, scriptName.Replace("./script", _secondaryScriptDirectory));
         }
 
         #endregion
