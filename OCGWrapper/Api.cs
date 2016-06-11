@@ -67,7 +67,7 @@ namespace OCGWrapper
         #region Private Variables
 
         private static string _rootPath;
-        private static string _primaryScriptDirectory;
+        private static string _scriptDirectory;
         private static string _secondaryScriptDirectory;
         private static IntPtr _buffer;
 
@@ -79,10 +79,10 @@ namespace OCGWrapper
 
         #region Public Functions
 
-        public static void Init(string rootPath = ".", string primaryScriptDirectory = "script", string secondaryScriptDirectory = "script", string databaseFile = "cards.cdb")
+        public static void Init(string rootPath = ".", string scriptDirectory = "script", string secondaryScriptDirectory = "script", string databaseFile = "cards.cdb")
         {
             _rootPath = rootPath;
-            _primaryScriptDirectory = primaryScriptDirectory;
+            _scriptDirectory = scriptDirectory;
             _secondaryScriptDirectory = secondaryScriptDirectory;
 
             CardsManager.Init(Path.Combine(Path.GetFullPath(rootPath), databaseFile));
@@ -125,7 +125,7 @@ namespace OCGWrapper
 
         private static IntPtr OnScriptReader(String scriptName, Int32* len)
         {
-            string filename = GetPrimaryScriptFilename(scriptName);
+            string filename = GetScriptDirectory(scriptName);
             if (!File.Exists(filename))
             {
                 filename = GetSecondaryScriptFilename(scriptName);
@@ -154,9 +154,9 @@ namespace OCGWrapper
 
         #region Private Functions
 
-        private static string GetPrimaryScriptFilename(string scriptName)
+        private static string GetScriptDirectory(string scriptName)
         {
-            return Path.Combine(_rootPath, scriptName.Replace("./script", _primaryScriptDirectory));
+            return Path.Combine(_rootPath, scriptName.Replace("./script", _scriptDirectory));
         }
 
         private static string GetSecondaryScriptFilename(string scriptName)
