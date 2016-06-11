@@ -31,9 +31,8 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 * `RootPath` (default: `.`)
 
 
-* `PrimaryScriptDirectory` (default: `script`)
+* `ScriptDirectory` (default: `script`)
 
-* `SecondaryScriptDirectory` (default: `script`)
 
 * `DatabaseFile` (default: `cards.cdb`)
 
