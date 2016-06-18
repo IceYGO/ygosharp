@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net.Sockets;
 
 namespace YGOSharp.Network
 {
@@ -10,8 +9,8 @@ namespace YGOSharp.Network
         {
         }
 
-        public YGOClient(Socket socket)
-            : base(new NetworkClient(socket))
+        public YGOClient(NetworkClient client)
+            : base(client)
         {
         }
 

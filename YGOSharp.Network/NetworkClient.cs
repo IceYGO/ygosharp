@@ -99,6 +99,7 @@ namespace YGOSharp.Network
                 {
                     ex = new AggregateException(error, ex);
                 }
+                IsConnected = false;
                 Disconnected?.Invoke(error);
             }
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using YGOSharp.Network;
 
 namespace YGOSharp
@@ -15,14 +14,13 @@ namespace YGOSharp
         public AddonsManager Addons { get; private set; }
         public Game Game { get; private set; }
 
-        private TcpListener _listener;
-        private readonly List<YGOClient> _clients;
+        private NetworkServer _listener;
+        private readonly List<YGOClient> _clients = new List<YGOClient>();
 
         private bool _closePending;
 
         public CoreServer()
         {
-            _clients = new List<YGOClient>();
         }
 
         public void Start()
@@ -34,7 +32,8 @@ namespace YGOSharp
             Addons.Init(Game);
             try
             {
-                _listener = new TcpListener(IPAddress.Any, Config.GetInt("Port", DEFAULT_PORT));
+                _listener = new NetworkServer(IPAddress.Any, Config.GetInt("Port", DEFAULT_PORT));
+                _listener.ClientConnected += Listener_ClientConnected;
                 _listener.Start();
                 IsRunning = true;
                 IsListening = true;
@@ -51,7 +50,7 @@ namespace YGOSharp
             if (!IsListening)
                 return;
             IsListening = false;
-            _listener.Stop();
+            _listener.Close();
         }
 
         public void Stop()
@@ -82,8 +81,7 @@ namespace YGOSharp
         
         public void Tick()
         {
-            while (IsListening && _listener.Pending())
-                AddClient(new YGOClient(_listener.AcceptSocket()));
+            _listener.Update();
 
             List<YGOClient> disconnectedClients = new List<YGOClient>();
 
@@ -106,6 +104,11 @@ namespace YGOSharp
 
             if (_closePending && _clients.Count == 0)
                 Stop();
+        }
+
+        private void Listener_ClientConnected(NetworkClient client)
+        {
+            AddClient(new YGOClient(client));
         }
     }
 }
