@@ -34,19 +34,18 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoreClient.cs" />
+    <Compile Include="BinaryClient.cs" />
     <Compile Include="Enums\PlayerChange.cs" />
-    <Compile Include="ExceptionEventArgs.cs" />
-    <Compile Include="GamePacketReader.cs" />
-    <Compile Include="GamePacketWriter.cs" />
     <Compile Include="Enums\CtosMessage.cs" />
     <Compile Include="Enums\GameState.cs" />
     <Compile Include="Enums\PlayerState.cs" />
     <Compile Include="Enums\PlayerType.cs" />
     <Compile Include="Enums\StocMessage.cs" />
-    <Compile Include="MessageEventArgs.cs" />
+    <Compile Include="NetworkClient.cs" />
+    <Compile Include="NetworkServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\BinaryExtensions.cs" />
+    <Compile Include="YGOClient.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
