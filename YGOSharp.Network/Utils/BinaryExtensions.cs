@@ -22,5 +22,10 @@ namespace YGOSharp.Network.Utils
             text = text.Substring(0, text.IndexOf('\0'));
             return text;
         }
+
+        public static byte[] ReadToEnd(this BinaryReader reader)
+        {
+            return reader.ReadBytes((int)(reader.BaseStream.Length - reader.BaseStream.Position));
+        }
     }
 }

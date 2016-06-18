@@ -247,7 +247,7 @@ namespace YGOSharp
             msg.Reader.ReadInt32();
 
             byte[] buffer = msg.CreateBuffer();
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
 
             switch (type)
@@ -342,7 +342,7 @@ namespace YGOSharp
 
         private void OnSelectCard(CoreMessage msg)
         {
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
 
             int player = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -441,7 +441,7 @@ namespace YGOSharp
             msg.Reader.ReadBytes(count * 7);
 
             byte[] buffer = msg.CreateBuffer();
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             if ((CardLocation)buffer[7] == CardLocation.Hand)
                 Game.SendToAll(packet);
@@ -451,7 +451,7 @@ namespace YGOSharp
 
         private void OnShuffleHand(CoreMessage msg)
         {
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -528,12 +528,12 @@ namespace YGOSharp
             int cp = raw[11];
 
             SendToPlayer(msg, cc);
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(raw);
             if (!Convert.ToBoolean((cl & ((int)CardLocation.Grave + (int)CardLocation.Overlay))) && Convert.ToBoolean((cl & ((int)CardLocation.Deck + (int)CardLocation.Hand)))
                 || Convert.ToBoolean((cp & (int)CardPosition.FaceDown)))
             {
-                packet.SetPosition(2);
+                packet.BaseStream.Position = 2;
                 packet.Write(0);
             }
             Game.SendToAllBut(packet, cc);
@@ -560,7 +560,7 @@ namespace YGOSharp
         {
             msg.Reader.ReadBytes(4);
             byte[] raw = msg.Reader.ReadBytes(4);
-            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.Set);
+            BinaryWriter packet = GamePacketFactory.Create(GameMessage.Set);
             packet.Write(0);
             packet.Write(raw);
             Game.SendToAll(packet);
@@ -597,7 +597,7 @@ namespace YGOSharp
 
         private void OnDraw(CoreMessage msg)
         {
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -699,7 +699,7 @@ namespace YGOSharp
 
         private void OnTagSwap(CoreMessage msg)
         {
-            GamePacketWriter packet = GamePacketFactory.Create(GameMessage.TagSwap);
+            BinaryWriter packet = GamePacketFactory.Create(GameMessage.TagSwap);
 
             int player = msg.Reader.ReadByte();
             packet.Write((byte)player);
@@ -737,7 +737,7 @@ namespace YGOSharp
         private void SendToAll(CoreMessage msg)
         {
             byte[] buffer = msg.CreateBuffer();
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             Game.SendToAll(packet);
         }
@@ -758,7 +758,7 @@ namespace YGOSharp
             if (player != 0 && player != 1)
                 return;
             byte[] buffer = msg.CreateBuffer();
-            GamePacketWriter packet = GamePacketFactory.Create(msg.Message);
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             Game.CurPlayers[player].Send(packet);
         }

@@ -16,13 +16,13 @@ namespace YGOSharp
         public Game Game { get; private set; }
 
         private TcpListener _listener;
-        private readonly List<CoreClient> _clients;
+        private readonly List<YGOClient> _clients;
 
         private bool _closePending;
 
         public CoreServer()
         {
-            _clients = new List<CoreClient>();
+            _clients = new List<YGOClient>();
         }
 
         public void Start()
@@ -58,7 +58,7 @@ namespace YGOSharp
         {
             if (IsListening)
                 StopListening();
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
                 client.Close();
             Game.Stop();
             IsRunning = false;
@@ -67,28 +67,28 @@ namespace YGOSharp
         public void StopDelayed()
         {
             _closePending = true;
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
                 client.Close();
         }
 
-        public void AddClient(CoreClient client)
+        public void AddClient(YGOClient client)
         {
             _clients.Add(client);
             Player player = new Player(Game, client);
-            client.MessageReceived += (sender, e) => player.Parse(e.Message);
-            client.Closed += (sender, e) => player.OnDisconnected();
+
+            client.PacketReceived += packet => player.Parse(packet);
+            client.Disconnected += packet => player.OnDisconnected();
         }
         
         public void Tick()
         {
             while (IsListening && _listener.Pending())
-                AddClient(new CoreClient(_listener.AcceptTcpClient()));
+                AddClient(new YGOClient(_listener.AcceptSocket()));
 
-            List<CoreClient> disconnectedClients = new List<CoreClient>();
+            List<YGOClient> disconnectedClients = new List<YGOClient>();
 
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
             {
-                client.UpdateNetwork();
                 client.Update();
                 if (!client.IsConnected)
                 {
