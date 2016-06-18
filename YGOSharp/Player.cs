@@ -11,11 +11,9 @@ namespace YGOSharp
         public string Name { get; private set; }
         public bool IsAuthentified { get; private set; }
         public int Type { get; set; }
-        public int TurnSkip { get; set; }
         public Deck Deck { get; private set; }
         public PlayerState State { get; set; }
         private YGOClient _client;
-        private bool _isError;
 
         public Player(Game game, YGOClient client)
         {
@@ -23,7 +21,6 @@ namespace YGOSharp
             Type = (int)PlayerType.Undefined;
             State = PlayerState.None;
             _client = client;
-            TurnSkip = 0;
         }
 
         public void Send(BinaryWriter packet)
@@ -49,41 +46,6 @@ namespace YGOSharp
             Send(packet);
         }
 
-        public void SendErrorMessage(string message)
-        {
-            _isError = true;
-
-            BinaryWriter join = GamePacketFactory.Create(StocMessage.JoinGame);
-            join.Write(0U);
-            join.Write((byte)0);
-            join.Write((byte)0);
-            join.Write(false);
-            join.Write(false);
-            join.Write(false);
-            // C++ padding: 5 bytes + 3 bytes = 8 bytes
-            for (int i = 0; i < 3; i++)
-                join.Write((byte)0);
-            join.Write(8000);
-            join.Write(5);
-            join.Write(1);
-            join.Write(0);
-            Send(join);
-
-            BinaryWriter packet = GamePacketFactory.Create(StocMessage.TypeChange);
-            packet.Write((byte)(0));
-            Send(packet);
-
-            BinaryWriter enter = GamePacketFactory.Create(StocMessage.HsPlayerEnter);
-            enter.WriteUnicode("[Error occurred]:", 20);
-            enter.Write((byte)0);
-            Send(enter);
-
-            enter = GamePacketFactory.Create(StocMessage.HsPlayerEnter);
-            enter.WriteUnicode(message, 20);
-            enter.Write((byte)1);
-            Send(enter);
-        }
-
         public bool Equals(Player player)
         {
             return ReferenceEquals(this, player);
@@ -91,9 +53,6 @@ namespace YGOSharp
 
         public void Parse(BinaryReader packet)
         {
-            if (_isError)
-                return;
-
             CtosMessage msg = (CtosMessage)packet.ReadByte();
             switch (msg)
             {
