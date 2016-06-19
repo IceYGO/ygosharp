@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using OCGWrapper;
 using OCGWrapper.Enums;
-using YGOSharp.Network;
 using YGOSharp.Network.Enums;
 
 namespace YGOSharp
