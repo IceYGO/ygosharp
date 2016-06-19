@@ -3,7 +3,7 @@ using System;
 using System.IO;
 #endif
 using System.Threading;
-using OCGWrapper;
+using YGOSharp.OCGWrapper;
 
 namespace YGOSharp
 {

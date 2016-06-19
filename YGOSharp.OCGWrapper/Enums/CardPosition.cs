@@ -1,4 +1,4 @@
-﻿namespace OCGWrapper.Enums
+﻿namespace YGOSharp.OCGWrapper.Enums
 {
     public enum CardPosition
     {

@@ -1,7 +1,7 @@
-﻿using OCGWrapper.Enums;
+﻿using YGOSharp.OCGWrapper.Enums;
 using System.Data;
 
-namespace OCGWrapper
+namespace YGOSharp.OCGWrapper
 {
     public class Card
     {

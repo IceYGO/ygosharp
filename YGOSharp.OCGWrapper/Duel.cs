@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using OCGWrapper.Enums;
+using YGOSharp.OCGWrapper.Enums;
 
-namespace OCGWrapper
+namespace YGOSharp.OCGWrapper
 {
     public class Duel
     {

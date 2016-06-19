@@ -1,4 +1,4 @@
-﻿namespace OCGWrapper
+﻿namespace YGOSharp.OCGWrapper
 {
     internal class MtRandom
     {

@@ -67,9 +67,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OCGWrapper\OCGWrapper.csproj">
+    <ProjectReference Include="..\YGOSharp.OCGWrapper\YGOSharp.OCGWrapper.csproj">
       <Project>{79b4527f-0fbe-4756-a4b3-7da9c73f25ab}</Project>
-      <Name>OCGWrapper</Name>
+      <Name>YGOSharp.OCGWrapper</Name>
     </ProjectReference>
     <ProjectReference Include="..\SevenZip\SevenZip.csproj">
       <Project>{fc0182a3-db1a-48d4-a432-5f78093b137e}</Project>

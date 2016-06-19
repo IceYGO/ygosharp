@@ -1,4 +1,4 @@
-﻿namespace OCGWrapper.Enums
+﻿namespace YGOSharp.OCGWrapper.Enums
 {
     public enum DuelPhase
     {
@@ -9,7 +9,7 @@
         BattleStep = 0x10,
         Damage = 0x20,
         DamageCal = 0x40,
-	Battle = 0x80,
+        Battle = 0x80,
         Main2 = 0x100,
         End = 0x200
     }

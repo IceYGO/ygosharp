@@ -4,7 +4,7 @@ using Mono.Data.Sqlite;
 using System;
 using System.IO;
 
-namespace OCGWrapper
+namespace YGOSharp.OCGWrapper
 {
     public static class NamedCardsManager
     {

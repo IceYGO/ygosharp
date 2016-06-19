@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using OCGWrapper;
-using OCGWrapper.Enums;
 using YGOSharp.Network.Enums;
 using YGOSharp.Network.Utils;
+using YGOSharp.OCGWrapper;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {

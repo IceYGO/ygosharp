@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace OCGWrapper
+namespace YGOSharp.OCGWrapper
 {
     public static unsafe class Api
     {

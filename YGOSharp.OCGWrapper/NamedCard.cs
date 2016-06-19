@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace OCGWrapper
+namespace YGOSharp.OCGWrapper
 {
     public class NamedCard : Card
     {
