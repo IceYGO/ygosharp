@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IceYGO")]
 [assembly: AssemblyProduct("YGOSharp.Network")]
-[assembly: AssemblyCopyright("Copyright © IceYGO 2015")]
+[assembly: AssemblyCopyright("Copyright © IceYGO 2015-2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
