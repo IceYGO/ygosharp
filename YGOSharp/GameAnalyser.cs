@@ -674,6 +674,7 @@ namespace YGOSharp
         private void OnAnnounceCard(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
+            msg.Reader.ReadBytes(4);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }
