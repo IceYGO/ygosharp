@@ -35,5 +35,13 @@ namespace YGOSharp
                 current.Add(id, count);
             }
         }
+
+        public static int GetIndex(uint hash)
+        {
+            for (int i = 0; i < Banlists.Count; i++)
+                if (Banlists[i].Hash == hash)
+                    return i;
+            return 0;
+        }
     }
 }
