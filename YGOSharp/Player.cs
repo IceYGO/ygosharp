@@ -62,6 +62,9 @@ namespace YGOSharp
                 case CtosMessage.JoinGame:
                     OnJoinGame(packet);
                     break;
+                case CtosMessage.CreateGame:
+                    OnCreateGame(packet);
+                    break;
             }
             if (!IsAuthentified)
                 return;
@@ -114,6 +117,16 @@ namespace YGOSharp
             if (Name != null)
                 return;
             Name = packet.ReadUnicode(20);
+        }
+
+        private void OnCreateGame(BinaryReader packet)
+        {
+            Game.SetRules(packet);
+            packet.ReadUnicode(20);//hostname
+            packet.ReadUnicode(30); //password
+
+            Game.AddPlayer(this);
+            IsAuthentified = true;
         }
 
         private void OnJoinGame(BinaryReader packet)
