@@ -14,10 +14,15 @@ namespace YGOSharp
             Game = game;
         }
 
-        public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw)
+        public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw, int len)
         {
             LastMessage = msg;
+
+            Game.Replay.Write((short)len);
+            Game.Replay.Write(raw, 0, len);
+
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
+            Console.WriteLine(cmsg.Message);
             switch (msg)
             {
                 case GameMessage.Retry:
@@ -227,6 +232,7 @@ namespace YGOSharp
                 default:
                     throw new Exception("[GameAnalyser] Unhandled packet id: " + msg);
             }
+
             return 0;
         }
 
@@ -538,7 +544,7 @@ namespace YGOSharp
             Game.SendToAllBut(packet, cc);
 
             if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))
-                Game.RefreshSingle(cc, cl, cs);
+                 Game.RefreshSingle(cc, cl, cs);
         }
 
         private void OnPosChange(CoreMessage msg)

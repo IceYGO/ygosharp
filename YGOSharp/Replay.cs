@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using YGOSharp.Network.Utils;
+using YGOSharp.OCGWrapper.Enums;
 using YGOSharp.SevenZip.Compress.LZMA;
 
 namespace YGOSharp
@@ -23,7 +26,7 @@ namespace YGOSharp
 
         public bool Disabled { get; private set; }
         public ReplayHeader Header;
-        public BinaryWriter Writer { get; private set; }
+        private BinaryWriter Writer;
 
         private MemoryStream _stream;
         private byte[] _data;
@@ -39,14 +42,56 @@ namespace YGOSharp
             Writer = new BinaryWriter(_stream);
         }
 
+        public void Write(BinaryWriter packet)
+        {
+            byte[] data = ((MemoryStream)packet.BaseStream).ToArray();
+            byte[] replayData = new byte[data.Length - 1];
+            Array.Copy(data, 1, replayData, 0, replayData.Length);
+
+            Write((short)replayData.Length);
+            Write(replayData);
+        }
+
+        public void Write(int packet)
+        {
+            Writer.Write(packet);
+        }
+
+        public void Write(short packet)
+        {
+            Writer.Write(packet);
+        }
+
+        public void Write(byte packet)
+        {
+            Writer.Write(packet);
+        }
+
+        public void Write(byte[] packet)
+        {
+            Writer.Write(packet);
+        }
+
+        public void WriteUnicode(string packet, int len)
+        {
+            Writer.WriteUnicode(packet, len);
+           
+        }
+
+        public void Write(byte[] packet, int index, int len)
+        {
+            Writer.Write(packet, index, len);
+            Console.WriteLine((GameMessage)packet[index]);
+        }
+
         public void Check()
         {
-            if (_stream.Position >= MaxReplaySize)
-            {
-                Writer.Close();
-                _stream.Dispose();
-                Disabled = true;
-            }
+            //if (_stream.Position >= MaxReplaySize)
+            //{
+            //    Writer.Close();
+            //    _stream.Dispose();
+            //    Disabled = true;
+            //}
         }
 
         public void End()
@@ -83,6 +128,7 @@ namespace YGOSharp
             writer.Write(raw);
 
             _data = ms.ToArray();
+
         }
 
         public byte[] GetContent()
