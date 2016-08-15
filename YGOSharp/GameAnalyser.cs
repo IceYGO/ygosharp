@@ -18,8 +18,11 @@ namespace YGOSharp
         {
             LastMessage = msg;
 
-            Game.Replay.Write((short)len);
-            Game.Replay.Write(raw, 0, len);
+            if (msg != GameMessage.Move)
+            {
+                Game.Replay.Write((short)len);
+                Game.Replay.Write(raw, 0, len);
+            }
 
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
             Console.WriteLine(cmsg.Message);
@@ -541,6 +544,7 @@ namespace YGOSharp
                 packet.BaseStream.Position = 2;
                 packet.Write(0);
             }
+            Game.Replay.Write(packet);
             Game.SendToAllBut(packet, cc);
 
             if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))
