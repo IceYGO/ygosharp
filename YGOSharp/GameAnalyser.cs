@@ -18,14 +18,13 @@ namespace YGOSharp
         {
             LastMessage = msg;
 
-            if (msg != GameMessage.Move)
+            if (Config.GetBool("YRP2", false) && msg != GameMessage.Move)
             {
                 Game.Replay.Write((short)len);
                 Game.Replay.Write(raw, 0, len);
             }
 
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
-            Console.WriteLine(cmsg.Message);
             switch (msg)
             {
                 case GameMessage.Retry:
@@ -544,7 +543,8 @@ namespace YGOSharp
                 packet.BaseStream.Position = 2;
                 packet.Write(0);
             }
-            Game.Replay.Write(packet);
+            if (Config.GetBool("YRP2", false))
+                Game.Replay.Write(packet);
             Game.SendToAllBut(packet, cc);
 
             if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))

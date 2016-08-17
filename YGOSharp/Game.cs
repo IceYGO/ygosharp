@@ -685,7 +685,8 @@ namespace YGOSharp
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Extra));
             SendToTeam(packet, 0);
 
-            Replay.Write(packet);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(packet);
 
             packet.BaseStream.Position = 2;
             packet.Write((byte)1);
@@ -762,8 +763,8 @@ namespace YGOSharp
             update.Write((byte)CardLocation.MonsterZone);
             update.Write(result);
 
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateData + " - Location: " + CardLocation.MonsterZone + " Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             if (observer == null)
                 SendToTeam(update, player);
@@ -815,8 +816,8 @@ namespace YGOSharp
             update.Write((byte)CardLocation.SpellZone);
             update.Write(result);
 
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateData + " - Location: " + CardLocation.SpellZone + " Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             if (observer == null)
                 SendToTeam(update, player);
@@ -868,8 +869,8 @@ namespace YGOSharp
             update.Write((byte)CardLocation.Hand);
             update.Write(result);
 
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateData + " - Location: " + CardLocation.Hand + " Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             if (observer == null)
                 CurPlayers[player].Send(update);
@@ -916,8 +917,8 @@ namespace YGOSharp
             update.Write((byte)CardLocation.Grave);
             update.Write(result);
 
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateData + " - Location: " + CardLocation.Grave + " Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             if (observer == null)
                 SendToAll(update);
@@ -933,8 +934,8 @@ namespace YGOSharp
             update.Write((byte)CardLocation.Extra);
             update.Write(result);
 
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateData + " - Location: " + CardLocation.Extra + " Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             CurPlayers[player].Send(update);
         }
@@ -951,9 +952,8 @@ namespace YGOSharp
             update.Write((byte)location);
             update.Write((byte)sequence);
             update.Write(result);
-
-            Replay.Write(update);
-            Console.WriteLine(GameMessage.UpdateCard + " - Player: " + player);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
 
             CurPlayers[player].Send(update);
 
@@ -990,8 +990,6 @@ namespace YGOSharp
             _lastresponse = player;
             CurPlayers[player].State = PlayerState.Response;
             SendToAllBut(GamePacketFactory.Create(GameMessage.Waiting), player);
-            Replay.Write((short)1);
-            Replay.Write((byte)GameMessage.Waiting);
             TimeStart();
             BinaryWriter packet = GamePacketFactory.Create(StocMessage.TimeLimit);
             packet.Write((byte)player);
@@ -1004,9 +1002,12 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                //Replay.Writer.Write((byte)4);
-                //Replay.Writer.Write(BitConverter.GetBytes(resp));
-                Replay.Check();
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)4);
+                    Replay.Write(BitConverter.GetBytes(resp));
+                    Replay.Check();
+                }
             }
 
             TimeStop();
@@ -1017,9 +1018,12 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                //Replay.Writer.Write((byte)resp.Length);
-                //Replay.Writer.Write(resp);
-                Replay.Check();
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)resp.Length);
+                    Replay.Write(resp);
+                    Replay.Check();
+                }
             }
 
             TimeStop();
@@ -1042,7 +1046,7 @@ namespace YGOSharp
                     byte[] replayData = Replay.GetContent();
                     BinaryWriter packet = GamePacketFactory.Create(StocMessage.Replay);
                     packet.Write(replayData);
-                    File.WriteAllBytes("test.yrp", replayData);
+                    //File.WriteAllBytes("test.yrp", replayData);
                     SendToAll(packet);
                 }
 

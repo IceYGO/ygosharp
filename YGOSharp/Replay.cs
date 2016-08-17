@@ -81,23 +81,27 @@ namespace YGOSharp
         public void Write(byte[] packet, int index, int len)
         {
             Writer.Write(packet, index, len);
-            Console.WriteLine((GameMessage)packet[index]);
         }
 
         public void Check()
         {
-            //if (_stream.Position >= MaxReplaySize)
-            //{
-            //    Writer.Close();
-            //    _stream.Dispose();
-            //    Disabled = true;
-            //}
+            if (_stream.Position >= MaxReplaySize)
+            {
+                Writer.Close();
+                _stream.Dispose();
+                Disabled = true;
+            }
         }
 
         public void End()
         {
             if (Disabled)
                 return;
+            if (Config.GetBool("YRP2", false))
+            {
+                Write((short)1);
+                Write((byte)GameMessage.Win);
+            }
 
             byte[] raw = _stream.ToArray();
 
