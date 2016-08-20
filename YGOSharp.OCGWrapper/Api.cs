@@ -98,6 +98,11 @@ namespace YGOSharp.OCGWrapper
             set_message_handler(_messageCallback);
         }
 
+        public static Card[] GetCardList()
+        {
+            return CardsManager.GetCardList();
+        }
+
         public static void Dispose()
         {
             foreach (Duel duel in Duel.Duels.Values)

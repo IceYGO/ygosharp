@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using YGOSharp.OCGWrapper;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {
@@ -30,9 +32,42 @@ namespace YGOSharp
                 if (current == null)
                     continue;
                 string[] data = line.Split(' ');
-                int id = int.Parse(data[0]);
+                int id = 0;
+                int.TryParse(data[0], out id);
                 int count = int.Parse(data[1]);
-                current.Add(id, count);
+                if (id == 0)
+                {
+                    if (data[0] == "TYPE_NORMAL")
+                        BanType(current, CardType.Normal, count);
+                    if (data[0] == "TYPE_XYZ")
+                        BanType(current,CardType.Xyz, count);
+                    if (data[0] == "TYPE_SYNCHRO")
+                        BanType(current, CardType.Synchro, count);
+                    if (data[0] == "TYPE_FUSION")
+                        BanType(current, CardType.Fusion, count);
+                    if (data[0] == "TYPE_PENDULUM")
+                        BanType(current, CardType.Pendulum, count);
+                    if (data[0] == "TYPE_SPELL")
+                        BanType(current, CardType.Spell, count);
+                    if (data[0] == "TYPE_TRAP")
+                        BanType(current, CardType.Trap, count);
+                    if (data[0] == "TYPE_RITUAL")
+                        BanType(current, CardType.Ritual, count);
+                    if (data[0] == "TYPE_EFFECT")
+                        BanType(current, CardType.Effect, count);
+                }
+                else
+                    current.Add(id, count);
+            }
+        }
+
+        static void BanType(Banlist current,CardType type, int count)
+        {
+            Card[] cards = Api.GetCardList();
+            foreach (Card card in cards)
+            {
+                if (card.HasType(type))
+                    current.Add(card.Id, count);
             }
         }
 

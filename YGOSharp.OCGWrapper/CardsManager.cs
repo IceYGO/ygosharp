@@ -36,6 +36,14 @@ namespace YGOSharp.OCGWrapper
             return null;
         }
 
+        internal static Card[] GetCardList()
+        {
+            List<Card> list = new List<Card>();
+            foreach (int card in _cards.Keys)
+                list.Add(_cards[card]);
+            return list.ToArray();
+        }
+
         private static void LoadCard(IDataRecord reader)
         {
             Card card = new Card(reader);
