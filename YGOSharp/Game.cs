@@ -1018,9 +1018,9 @@ namespace YGOSharp
                 if (!Config.GetBool("YRP2", false))
                 {
                     Replay.Write((byte)4);
-                    Replay.Write(BitConverter.GetBytes(resp));
-                    Replay.Check();
+                    Replay.Write(BitConverter.GetBytes(resp));  
                 }
+                Replay.Check();
             }
 
             TimeStop();
@@ -1035,8 +1035,9 @@ namespace YGOSharp
                 {
                     Replay.Write((byte)resp.Length);
                     Replay.Write(resp);
-                    Replay.Check();
+                    
                 }
+                Replay.Check();
             }
 
             TimeStop();

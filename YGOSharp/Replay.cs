@@ -22,7 +22,7 @@ namespace YGOSharp
         public const uint FlagCompressed = 0x1;
         public const uint FlagTag = 0x2;
 
-        public const int MaxReplaySize = 0x20000;
+        private int MaxReplaySize = 0x20000;
 
         public bool Disabled { get; private set; }
         public ReplayHeader Header;
@@ -33,6 +33,8 @@ namespace YGOSharp
 
         public Replay(uint seed, bool tag)
         {
+            if (Config.GetBool("YRP2", false))
+                MaxReplaySize = short.MaxValue - 33;//-msg/header
             Header.Id = 0x31707279;
             Header.Version = Program.ClientVersion;
             Header.Flag = tag ? FlagTag : 0;
