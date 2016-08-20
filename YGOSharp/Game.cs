@@ -1059,7 +1059,6 @@ namespace YGOSharp
                     byte[] replayData = Replay.GetContent();
                     BinaryWriter packet = GamePacketFactory.Create(StocMessage.Replay);
                     packet.Write(replayData);
-                    File.WriteAllBytes("test.yrp", replayData);
                     SendToAll(packet);
                 }
 
