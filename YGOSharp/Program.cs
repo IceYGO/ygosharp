@@ -9,7 +9,7 @@ namespace YGOSharp
 {
     public class Program
     {
-        public static uint ClientVersion = 0x133A;
+        public static uint ClientVersion = 0x1339;
 
         public static void Main(string[] args)
         {

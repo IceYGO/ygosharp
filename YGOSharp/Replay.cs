@@ -34,7 +34,7 @@ namespace YGOSharp
         public Replay(uint seed, bool tag)
         {
             if (Config.GetBool("YRP2", false))
-                MaxReplaySize = short.MaxValue - 33;//-msg/header
+                MaxReplaySize = 0x7FFF;
             Header.Id = 0x31707279;
             Header.Version = Program.ClientVersion;
             Header.Flag = tag ? FlagTag : 0;
