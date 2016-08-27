@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YGOSharp", "YGOSharp\YGOSharp.csproj", "{D86E1BE2-1947-4AD6-86E9-59043718DF24}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCGWrapper", "OCGWrapper\OCGWrapper.csproj", "{79B4527F-0FBE-4756-A4B3-7DA9C73F25AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YGOSharp.Network", "YGOSharp.Network\YGOSharp.Network.csproj", "{6086FE8A-07CD-4720-A024-6AEC05E93762}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YGOSharp.OCGWrapper", "YGOSharp.OCGWrapper\YGOSharp.OCGWrapper.csproj", "{79B4527F-0FBE-4756-A4B3-7DA9C73F25AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SevenZip", "SevenZip\SevenZip.csproj", "{FC0182A3-DB1A-48D4-A432-5F78093B137E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YGOSharp.Network", "YGOSharp.Network\YGOSharp.Network.csproj", "{6086FE8A-07CD-4720-A024-6AEC05E93762}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

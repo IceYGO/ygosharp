@@ -1,5 +1,7 @@
-﻿using YGOSharp.Network;
+﻿using System.IO;
+using YGOSharp.Network;
 using YGOSharp.Network.Enums;
+using YGOSharp.Network.Utils;
 
 namespace YGOSharp
 {
@@ -9,22 +11,19 @@ namespace YGOSharp
         public string Name { get; private set; }
         public bool IsAuthentified { get; private set; }
         public int Type { get; set; }
-        public int TurnSkip { get; set; }
         public Deck Deck { get; private set; }
         public PlayerState State { get; set; }
-        private CoreClient _client;
-        private bool _isError;
+        private YGOClient _client;
 
-        public Player(Game game, CoreClient client)
+        public Player(Game game, YGOClient client)
         {
             Game = game;
             Type = (int)PlayerType.Undefined;
             State = PlayerState.None;
             _client = client;
-            TurnSkip = 0;
         }
 
-        public void Send(GamePacketWriter packet)
+        public void Send(BinaryWriter packet)
         {
             _client.Send(packet);
         }
@@ -42,44 +41,9 @@ namespace YGOSharp
 
         public void SendTypeChange()
         {
-            GamePacketWriter packet = new GamePacketWriter(StocMessage.TypeChange);
+            BinaryWriter packet = GamePacketFactory.Create(StocMessage.TypeChange);
             packet.Write((byte)(Type + (Game.HostPlayer.Equals(this) ? (int)PlayerType.Host : 0)));
             Send(packet);
-        }
-
-        public void SendErrorMessage(string message)
-        {
-            _isError = true;
-
-            GamePacketWriter join = new GamePacketWriter(StocMessage.JoinGame);
-            join.Write(0U);
-            join.Write((byte)0);
-            join.Write((byte)0);
-            join.Write(false);
-            join.Write(false);
-            join.Write(false);
-            // C++ padding: 5 bytes + 3 bytes = 8 bytes
-            for (int i = 0; i < 3; i++)
-                join.Write((byte)0);
-            join.Write(8000);
-            join.Write(5);
-            join.Write(1);
-            join.Write(0);
-            Send(join);
-
-            GamePacketWriter packet = new GamePacketWriter(StocMessage.TypeChange);
-            packet.Write((byte)(0));
-            Send(packet);
-
-            GamePacketWriter enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
-            enter.Write("[Error occurred]:", 20);
-            enter.Write((byte)0);
-            Send(enter);
-
-            enter = new GamePacketWriter(StocMessage.HsPlayerEnter);
-            enter.Write(message, 20);
-            enter.Write((byte)1);
-            Send(enter);
         }
 
         public bool Equals(Player player)
@@ -87,12 +51,9 @@ namespace YGOSharp
             return ReferenceEquals(this, player);
         }
 
-        public void Parse(GamePacketReader packet)
+        public void Parse(BinaryReader packet)
         {
-            if (_isError)
-                return;
-
-            CtosMessage msg = packet.ReadCtos();
+            CtosMessage msg = (CtosMessage)packet.ReadByte();
             switch (msg)
             {
                 case CtosMessage.PlayerInfo:
@@ -100,6 +61,9 @@ namespace YGOSharp
                     break;
                 case CtosMessage.JoinGame:
                     OnJoinGame(packet);
+                    break;
+                case CtosMessage.CreateGame:
+                    OnCreateGame(packet);
                     break;
             }
             if (!IsAuthentified)
@@ -148,14 +112,24 @@ namespace YGOSharp
             }
         }
 
-        private void OnPlayerInfo(GamePacketReader packet)
+        private void OnPlayerInfo(BinaryReader packet)
         {
             if (Name != null)
                 return;
             Name = packet.ReadUnicode(20);
         }
 
-        private void OnJoinGame(GamePacketReader packet)
+        private void OnCreateGame(BinaryReader packet)
+        {
+            Game.SetRules(packet);
+            packet.ReadUnicode(20);//hostname
+            packet.ReadUnicode(30); //password
+
+            Game.AddPlayer(this);
+            IsAuthentified = true;
+        }
+
+        private void OnJoinGame(BinaryReader packet)
         {
             if (Name == null || Type != (int)PlayerType.Undefined)
                 return;
@@ -171,31 +145,31 @@ namespace YGOSharp
             IsAuthentified = true;
         }
 
-        private void OnChat(GamePacketReader packet)
+        private void OnChat(BinaryReader packet)
         {
             string msg = packet.ReadUnicode(256);
             Game.Chat(this, msg);
         }
 
-        private void OnKick(GamePacketReader packet)
+        private void OnKick(BinaryReader packet)
         {
             int pos = packet.ReadByte();
             Game.KickPlayer(this, pos);
         }
 
-        private void OnHandResult(GamePacketReader packet)
+        private void OnHandResult(BinaryReader packet)
         {
             int res = packet.ReadByte();
             Game.HandResult(this, res);
         }
 
-        private void OnTpResult(GamePacketReader packet)
+        private void OnTpResult(BinaryReader packet)
         {
             bool tp = packet.ReadByte() != 0;
             Game.TpResult(this, tp);
         }
 
-        private void OnUpdateDeck(GamePacketReader packet)
+        private void OnUpdateDeck(BinaryReader packet)
         {
             if (Type == (int)PlayerType.Observer)
                 return;
@@ -218,7 +192,7 @@ namespace YGOSharp
                     return;
                 if (!Deck.Check(deck))
                 {
-                    GamePacketWriter error = new GamePacketWriter(StocMessage.ErrorMsg);
+                    BinaryWriter error = GamePacketFactory.Create(StocMessage.ErrorMsg);
                     error.Write((byte)3);
                     error.Write(0);
                     Send(error);
@@ -226,12 +200,12 @@ namespace YGOSharp
                 }
                 Deck = deck;
                 Game.IsReady[Type] = true;
-                Send(new GamePacketWriter(StocMessage.DuelStart));
+                Send(GamePacketFactory.Create(StocMessage.DuelStart));
                 Game.MatchSide();
             }
         }
 
-        private void OnResponse(GamePacketReader packet)
+        private void OnResponse(BinaryReader packet)
         {
             if (Game.State != GameState.Duel)
                 return;

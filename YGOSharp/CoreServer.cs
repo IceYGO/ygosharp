@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using YGOSharp.Network;
 
 namespace YGOSharp
@@ -15,14 +14,13 @@ namespace YGOSharp
         public AddonsManager Addons { get; private set; }
         public Game Game { get; private set; }
 
-        private TcpListener _listener;
-        private readonly List<CoreClient> _clients;
+        private NetworkServer _listener;
+        private readonly List<YGOClient> _clients = new List<YGOClient>();
 
         private bool _closePending;
 
         public CoreServer()
         {
-            _clients = new List<CoreClient>();
         }
 
         public void Start()
@@ -34,7 +32,8 @@ namespace YGOSharp
             Addons.Init(Game);
             try
             {
-                _listener = new TcpListener(IPAddress.Any, Config.GetInt("Port", DEFAULT_PORT));
+                _listener = new NetworkServer(IPAddress.Any, Config.GetInt("Port", DEFAULT_PORT));
+                _listener.ClientConnected += Listener_ClientConnected;
                 _listener.Start();
                 IsRunning = true;
                 IsListening = true;
@@ -51,14 +50,14 @@ namespace YGOSharp
             if (!IsListening)
                 return;
             IsListening = false;
-            _listener.Stop();
+            _listener.Close();
         }
 
         public void Stop()
         {
             if (IsListening)
                 StopListening();
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
                 client.Close();
             Game.Stop();
             IsRunning = false;
@@ -67,28 +66,27 @@ namespace YGOSharp
         public void StopDelayed()
         {
             _closePending = true;
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
                 client.Close();
         }
 
-        public void AddClient(CoreClient client)
+        public void AddClient(YGOClient client)
         {
             _clients.Add(client);
             Player player = new Player(Game, client);
-            client.MessageReceived += (sender, e) => player.Parse(e.Message);
-            client.Closed += (sender, e) => player.OnDisconnected();
+
+            client.PacketReceived += packet => player.Parse(packet);
+            client.Disconnected += packet => player.OnDisconnected();
         }
         
         public void Tick()
         {
-            while (IsListening && _listener.Pending())
-                AddClient(new CoreClient(_listener.AcceptTcpClient()));
+            _listener.Update();
 
-            List<CoreClient> disconnectedClients = new List<CoreClient>();
+            List<YGOClient> disconnectedClients = new List<YGOClient>();
 
-            foreach (CoreClient client in _clients)
+            foreach (YGOClient client in _clients)
             {
-                client.UpdateNetwork();
                 client.Update();
                 if (!client.IsConnected)
                 {
@@ -106,6 +104,11 @@ namespace YGOSharp
 
             if (_closePending && _clients.Count == 0)
                 Stop();
+        }
+
+        private void Listener_ClientConnected(NetworkClient client)
+        {
+            AddClient(new YGOClient(client));
         }
     }
 }

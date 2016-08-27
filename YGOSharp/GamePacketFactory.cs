@@ -1,14 +1,22 @@
-﻿using OCGWrapper.Enums;
-using YGOSharp.Network;
+﻿using System;
+using System.IO;
 using YGOSharp.Network.Enums;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {
     public static class GamePacketFactory
     {
-        public static GamePacketWriter Create(GameMessage message)
+        public static BinaryWriter Create(StocMessage message)
         {
-            GamePacketWriter writer = new GamePacketWriter(StocMessage.GameMsg);
+            BinaryWriter writer = new BinaryWriter(new MemoryStream());
+            writer.Write((byte)message);
+            return writer;
+        }
+
+        public static BinaryWriter Create(GameMessage message)
+        {
+            BinaryWriter writer = Create(StocMessage.GameMsg);
             writer.Write((byte)message);
             return writer;
         } 
