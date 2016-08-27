@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
-using OCGWrapper.Enums;
-using YGOSharp.Network;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {
@@ -15,9 +14,16 @@ namespace YGOSharp
             Game = game;
         }
 
-        public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw)
+        public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw, int len)
         {
             LastMessage = msg;
+
+            if (Config.GetBool("YRP2", false) && msg != GameMessage.Move)
+            {
+                Game.Replay.Write((short)len);
+                Game.Replay.Write(raw, 0, len);
+            }
+
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
             switch (msg)
             {
@@ -228,6 +234,7 @@ namespace YGOSharp
                 default:
                     throw new Exception("[GameAnalyser] Unhandled packet id: " + msg);
             }
+
             return 0;
         }
 
@@ -536,10 +543,12 @@ namespace YGOSharp
                 packet.BaseStream.Position = 2;
                 packet.Write(0);
             }
+            if (Config.GetBool("YRP2", false))
+                Game.Replay.Write(packet);
             Game.SendToAllBut(packet, cc);
 
             if (cl != 0 && (cl & 0x80) == 0 && (cl != pl || pc != cc))
-                Game.RefreshSingle(cc, cl, cs);
+                 Game.RefreshSingle(cc, cl, cs);
         }
 
         private void OnPosChange(CoreMessage msg)
@@ -674,6 +683,7 @@ namespace YGOSharp
         private void OnAnnounceCard(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
+            msg.Reader.ReadBytes(4);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }

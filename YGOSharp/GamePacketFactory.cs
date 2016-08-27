@@ -1,6 +1,7 @@
-﻿using OCGWrapper.Enums;
+﻿using System;
 using System.IO;
 using YGOSharp.Network.Enums;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {

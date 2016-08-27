@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using OCGWrapper;
-using OCGWrapper.Enums;
-using YGOSharp.Network;
 using YGOSharp.Network.Enums;
+using YGOSharp.Network.Utils;
+using YGOSharp.OCGWrapper;
+using YGOSharp.OCGWrapper.Enums;
 
 namespace YGOSharp
 {
@@ -16,6 +16,15 @@ namespace YGOSharp
         public const int DEFAULT_TIMER = 240;
 
         public Banlist Banlist { get; private set; }
+        public int Mode { get; set; }
+        public int Rule { get; set; }
+        public int StartLp { get; set; }
+        public int StartHand { get; set; }
+        public int DrawCount { get; set; }
+        public int Timer { get; set; }
+        public bool EnablePriority { get; set; }
+        public bool NoCheckDeck { get; set; }
+        public bool NoShuffleDeck { get; set; }
         public bool IsMatch { get; private set; }
         public bool IsTag { get; private set; }
         public bool IsTpSelect { get; private set; }
@@ -67,8 +76,10 @@ namespace YGOSharp
         public Game(CoreServer server)
         {
             State = GameState.Lobby;
-            IsMatch = Config.GetInt("Mode") == 1;
-            IsTag = Config.GetInt("Mode") == 2;
+            Mode = Config.GetInt("Mode");
+            Rule = Config.GetInt("Rule");
+            IsMatch = Mode == 1;
+            IsTag = Mode == 2;
             CurrentPlayer = 0;
             LifePoints = new int[2];
             Players = new Player[IsTag ? 4 : 2];
@@ -85,11 +96,43 @@ namespace YGOSharp
             if (lfList >= 0 && lfList < BanlistManager.Banlists.Count)
                 Banlist = BanlistManager.Banlists[lfList];
 
-            LifePoints[0] = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
-            LifePoints[1] = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
+            StartLp = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
+            LifePoints[0] = StartLp;
+            LifePoints[1] = StartLp;
+            StartHand = Config.GetInt("StartHand", DEFAULT_START_HAND);
+            DrawCount = Config.GetInt("DrawCount", DEFAULT_DRAW_COUNT);
+            EnablePriority = Config.GetBool("EnablePriority");
+            NoCheckDeck = Config.GetBool("NoCheckDeck");
+            NoShuffleDeck = Config.GetBool("NoShuffleDeck");
+            Timer = Config.GetInt("GameTimer", DEFAULT_TIMER);
 
             _server = server;
             _analyser = new GameAnalyser(this);
+        }
+
+        public void SetRules(BinaryReader packet)
+        {
+            uint lfList = packet.ReadUInt32();
+            if (lfList >= 0 && lfList < BanlistManager.Banlists.Count)
+                Banlist = BanlistManager.Banlists[BanlistManager.GetIndex(lfList)];
+            Rule = packet.ReadByte();
+            Mode = packet.ReadByte();
+            IsMatch = Mode == 1;
+            IsTag = Mode == 2;
+            IsReady = new bool[IsTag ? 4 : 2];
+            Players = new Player[IsTag ? 4 : 2];
+            EnablePriority = packet.ReadByte() > 0;
+            NoCheckDeck = packet.ReadByte() > 0;
+            NoShuffleDeck = packet.ReadByte() > 0;
+            //C++ padding: 5 bytes + 3 bytes = 8 bytes
+            for (int i = 0; i < 3; i++)
+                packet.ReadByte();
+            int lifePoints = packet.ReadInt32();
+            LifePoints[0] = lifePoints;
+            LifePoints[1] = lifePoints;
+            StartHand = packet.ReadByte();
+            DrawCount = packet.ReadByte();
+            Timer = packet.ReadInt16();
         }
 
         public void Start()
@@ -403,13 +446,12 @@ namespace YGOSharp
 
             if (ready)
             {
-                int rule = Config.GetInt("Rule");
-                bool ocg = rule == 0 || rule == 2;
-                bool tcg = rule == 1 || rule == 2;
+                bool ocg = Rule == 0 || Rule == 2;
+                bool tcg = Rule == 1 || Rule == 2;
                 int result = 1;
                 if (player.Deck != null)
                 {
-                    result = Config.GetBool("NoCheckDeck") ? 0 : player.Deck.Check(Banlist, ocg, tcg);
+                    result = NoCheckDeck ? 0 : player.Deck.Check(Banlist, ocg, tcg);
                 }
                 if (result != 0)
                 {
@@ -564,37 +606,31 @@ namespace YGOSharp
             _duel = Duel.Create((uint)seed);
             Random rand = new Random(seed);
 
-            int startLp = Config.GetInt("StartLp", DEFAULT_LIFEPOINTS);
-            int startHand = Config.GetInt("StartHand", DEFAULT_START_HAND);
-            int drawCount = Config.GetInt("DrawCount", DEFAULT_DRAW_COUNT);
-            bool enablePriority = Config.GetBool("EnablePriority");
-            bool noShuffleDeck = Config.GetBool("NoShuffleDeck");
-
             _duel.SetAnalyzer(_analyser.Analyse);
             _duel.SetErrorHandler(HandleError);
 
-            _duel.InitPlayers(startLp, startHand, drawCount);
+            _duel.InitPlayers(StartLp, StartHand, DrawCount);
 
             int opt = 0;
-            if (enablePriority)
+            if (EnablePriority)
                 opt += 0x08;
-            if (noShuffleDeck)
+            if (NoShuffleDeck)
                 opt += 0x10;
             if (IsTag)
                 opt += 0x20;
 
             Replay = new Replay((uint)seed, IsTag);
-            Replay.Writer.WriteUnicode(Players[0].Name, 20);
-            Replay.Writer.WriteUnicode(Players[1].Name, 20);
+            Replay.WriteUnicode(Players[0].Name, 20);
+            Replay.WriteUnicode(Players[1].Name, 20);
             if (IsTag)
             {
-                Replay.Writer.WriteUnicode(Players[2].Name, 20);
-                Replay.Writer.WriteUnicode(Players[3].Name, 20);
+                Replay.WriteUnicode(Players[2].Name, 20);
+                Replay.WriteUnicode(Players[3].Name, 20);
             }
-            Replay.Writer.Write(startLp);
-            Replay.Writer.Write(startHand);
-            Replay.Writer.Write(drawCount);
-            Replay.Writer.Write(opt);
+            Replay.Write(StartLp);
+            Replay.Write(StartHand);
+            Replay.Write(DrawCount);
+            Replay.Write(opt);
 
             for (int i = 0; i < Players.Length; i++)
             {
@@ -602,22 +638,30 @@ namespace YGOSharp
                 int pid = i;
                 if (IsTag)
                     pid = i >= 2 ? 1 : 0;
-                if (!noShuffleDeck)
+                bool HideDeckInfo = Config.GetBool("HideDeckInfo", false);
+                if (!NoShuffleDeck)
                 {
                     List<int> cards = ShuffleCards(rand, dplayer.Deck.Main);
-                    Replay.Writer.Write(cards.Count);
+                    if (!HideDeckInfo)
+                        Replay.Write(cards.Count);
+                    else
+                        Replay.Write(0);
                     foreach (int id in cards)
                     {
                         if (IsTag && (i == 1 || i == 3))
                             _duel.AddTagCard(id, pid, CardLocation.Deck);
                         else
                             _duel.AddCard(id, pid, CardLocation.Deck);
-                        Replay.Writer.Write(id);
+                        if(!HideDeckInfo)
+                            Replay.Write(id);
                     }
                 }
                 else
                 {
-                    Replay.Writer.Write(dplayer.Deck.Main.Count);
+                    if (!HideDeckInfo)
+                        Replay.Write(dplayer.Deck.Main.Count);
+                    else
+                        Replay.Write(0);
                     for (int j = dplayer.Deck.Main.Count - 1; j >= 0; j--)
                     {
                         int id = dplayer.Deck.Main[j];
@@ -625,29 +669,37 @@ namespace YGOSharp
                             _duel.AddTagCard(id, pid, CardLocation.Deck);
                         else
                             _duel.AddCard(id, pid, CardLocation.Deck);
-                        Replay.Writer.Write(id);
+                        if (!HideDeckInfo)
+                            Replay.Write(id);
                     }
                 }
-                Replay.Writer.Write(dplayer.Deck.Extra.Count);
+                if (!HideDeckInfo)
+                    Replay.Write(dplayer.Deck.Extra.Count);
+                else
+                    Replay.Write(0);
                 foreach (int id in dplayer.Deck.Extra)
                 {
                     if (IsTag && (i == 1 || i == 3))
                         _duel.AddTagCard(id, pid, CardLocation.Extra);
                     else
                         _duel.AddCard(id, pid, CardLocation.Extra);
-                    Replay.Writer.Write(id);
-                }
+                    if(!HideDeckInfo)
+                        Replay.Write(id);
+                    }
             }
 
             BinaryWriter packet = GamePacketFactory.Create(GameMessage.Start);
             packet.Write((byte)0);
-            packet.Write(startLp);
-            packet.Write(startLp);
+            packet.Write(StartLp);
+            packet.Write(StartLp);
             packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Deck));
             packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Extra));
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Deck));
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Extra));
             SendToTeam(packet, 0);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(packet);
 
             packet.BaseStream.Position = 2;
             packet.Write((byte)1);
@@ -666,8 +718,8 @@ namespace YGOSharp
             _duel.Start(opt);
 
             TurnCount = 0;
-            LifePoints[0] = startLp;
-            LifePoints[1] = startLp;
+            LifePoints[0] = StartLp;
+            LifePoints[1] = StartLp;
             TimeReset();
 
             Process();
@@ -723,6 +775,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToTeam(update, player);
 
@@ -772,6 +828,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToTeam(update, player);
 
@@ -821,6 +881,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 CurPlayers[player].Send(update);
 
@@ -865,6 +929,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToAll(update);
             else
@@ -878,6 +946,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Extra);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false) && !Config.GetBool("HideDeckInfo", false))
+                Replay.Write(update);
+
             CurPlayers[player].Send(update);
         }
 
@@ -893,6 +965,9 @@ namespace YGOSharp
             update.Write((byte)location);
             update.Write((byte)sequence);
             update.Write(result);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             CurPlayers[player].Send(update);
 
             if (IsTag)
@@ -940,8 +1015,11 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                Replay.Writer.Write((byte)4);
-                Replay.Writer.Write(BitConverter.GetBytes(resp));
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)4);
+                    Replay.Write(BitConverter.GetBytes(resp));  
+                }
                 Replay.Check();
             }
 
@@ -953,8 +1031,12 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                Replay.Writer.Write((byte)resp.Length);
-                Replay.Writer.Write(resp);
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)resp.Length);
+                    Replay.Write(resp);
+                    
+                }
                 Replay.Check();
             }
 
@@ -1043,8 +1125,8 @@ namespace YGOSharp
 
         public void TimeReset()
         {
-            _timelimit[0] = Config.GetInt("GameTimer", DEFAULT_TIMER);
-            _timelimit[1] = Config.GetInt("GameTimer", DEFAULT_TIMER);
+            _timelimit[0] = Timer;
+            _timelimit[1] = Timer;
         }
 
         public void TimeStart()
@@ -1208,18 +1290,18 @@ namespace YGOSharp
         {
             BinaryWriter join = GamePacketFactory.Create(StocMessage.JoinGame);
             join.Write(Banlist == null ? 0U : Banlist.Hash);
-            join.Write((byte)Config.GetInt("Rule"));
-            join.Write((byte)Config.GetInt("Mode"));
-            join.Write(Config.GetBool("EnablePriority"));
-            join.Write(Config.GetBool("NoCheckDeck"));
-            join.Write(Config.GetBool("NoShuffleDeck"));
+            join.Write((byte)Rule);
+            join.Write((byte)Mode);
+            join.Write(EnablePriority);
+            join.Write(NoCheckDeck);
+            join.Write(NoShuffleDeck);
             // C++ padding: 5 bytes + 3 bytes = 8 bytes
             for (int i = 0; i < 3; i++)
                 join.Write((byte)0);
-            join.Write(Config.GetInt("StartLp", DEFAULT_LIFEPOINTS));
-            join.Write((byte)Config.GetInt("StartHand", DEFAULT_START_HAND));
-            join.Write((byte)Config.GetInt("DrawCount", DEFAULT_DRAW_COUNT));
-            join.Write((short)Config.GetInt("GameTimer", DEFAULT_TIMER));
+            join.Write(StartLp);
+            join.Write((byte)StartHand);
+            join.Write((byte)DrawCount);
+            join.Write((short)Timer);
             player.Send(join);
 
             if (State != GameState.Lobby)
