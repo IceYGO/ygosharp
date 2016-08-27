@@ -225,6 +225,9 @@ namespace YGOSharp
                 case GameMessage.CardHint:
                     SendToAll(cmsg, 9);
                     break;
+                case GameMessage.PlayerHint:
+                    SendToAll(cmsg, len);
+                    break;
                 case GameMessage.MatchKill:
                     OnMatchKill(cmsg);
                     break;
