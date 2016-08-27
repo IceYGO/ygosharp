@@ -76,6 +76,9 @@ namespace YGOSharp
             for (int i = 0; i < Banlists.Count; i++)
                 if (Banlists[i].Hash == hash)
                     return i;
+
+            if (hash < Banlists.Count)
+                return (int)hash;
             return 0;
         }
     }

@@ -46,6 +46,8 @@ namespace YGOSharp
 
         public void Write(BinaryWriter packet)
         {
+            if (Disabled)
+                return;
             byte[] data = ((MemoryStream)packet.BaseStream).ToArray();
             byte[] replayData = new byte[data.Length - 1];
             Array.Copy(data, 1, replayData, 0, replayData.Length);
@@ -56,32 +58,43 @@ namespace YGOSharp
 
         public void Write(int packet)
         {
+            if (Disabled)
+                return;
             Writer.Write(packet);
         }
 
         public void Write(short packet)
         {
+            if (Disabled)
+                return;
             Writer.Write(packet);
         }
 
         public void Write(byte packet)
         {
+            if (Disabled)
+                return;
             Writer.Write(packet);
         }
 
         public void Write(byte[] packet)
         {
+            if (Disabled)
+                return;
             Writer.Write(packet);
         }
 
         public void WriteUnicode(string packet, int len)
         {
-            Writer.WriteUnicode(packet, len);
-           
+            if (Disabled)
+                return;
+            Writer.WriteUnicode(packet, len); 
         }
 
         public void Write(byte[] packet, int index, int len)
         {
+            if (Disabled)
+                return;
             Writer.Write(packet, index, len);
         }
 
