@@ -67,7 +67,8 @@ namespace YGOSharp.OCGWrapper
         #region Private Variables
 
         private static string _rootPath;
-        private static string _scriptDirectory;
+        private static string _primaryScriptDirectory;
+        private static string _alternativeScriptDirectory;
         private static IntPtr _buffer;
 
         private static ScriptReader _scriptCallback;
@@ -78,10 +79,11 @@ namespace YGOSharp.OCGWrapper
 
         #region Public Functions
 
-        public static void Init(string rootPath = ".", string scriptDirectory = "script", string databaseFile = "cards.cdb")
+        public static void Init(string rootPath = ".", string primaryScriptDirectory = "script", string alternativeScriptDirectory = null, string databaseFile = "cards.cdb")
         {
             _rootPath = rootPath;
-            _scriptDirectory = scriptDirectory;
+            _primaryScriptDirectory = primaryScriptDirectory;
+            _alternativeScriptDirectory = alternativeScriptDirectory;
 
             CardsManager.Init(Path.Combine(Path.GetFullPath(rootPath), databaseFile));
 
@@ -96,6 +98,11 @@ namespace YGOSharp.OCGWrapper
             set_card_reader(_cardCallback);
             set_script_reader(_scriptCallback);
             set_message_handler(_messageCallback);
+        }
+
+        public static Card[] GetCardList()
+        {
+            return CardsManager.GetCardList();
         }
 
         public static void Dispose()
@@ -126,7 +133,11 @@ namespace YGOSharp.OCGWrapper
             string filename = GetScriptFilename(scriptName);
             if (!File.Exists(filename))
             {
-                return IntPtr.Zero;
+                filename = GetAlternativeScriptFilename(scriptName);
+                if (!File.Exists(filename))
+                {
+                    return IntPtr.Zero;
+                }
             }
             byte[] content = File.ReadAllBytes(filename);
             *len = content.Length;
@@ -150,7 +161,12 @@ namespace YGOSharp.OCGWrapper
 
         private static string GetScriptFilename(string scriptName)
         {
-            return Path.Combine(_rootPath, scriptName.Replace("./script", _scriptDirectory));
+            return Path.Combine(_rootPath, scriptName.Replace("./script", _primaryScriptDirectory));
+        }
+
+        private static string GetAlternativeScriptFilename(string scriptName)
+        {
+            return Path.Combine(_rootPath, scriptName.Replace("./script", _alternativeScriptDirectory));
         }
 
         #endregion

@@ -19,8 +19,10 @@ namespace YGOSharp
 #endif
                 Config.Load(args);
 
+
                 BanlistManager.Init(Config.GetString("BanlistFile", "lflist.conf"));
-                Api.Init(Config.GetString("RootPath", "."), Config.GetString("ScriptDirectory", "script"), Config.GetString("DatabaseFile", "cards.cdb"));
+                Api.Init(Config.GetString("RootPath", "."), Config.GetString("ScriptDirectory", "script"), Config.GetString("AlternativeScriptDirectory", "script"), Config.GetString("DatabaseFile", "cards.cdb"));
+                BanlistManager.Init(Config.GetString("BanlistFile", "lflist.conf"));
 
                 ClientVersion = Config.GetUInt("ClientVersion", ClientVersion);
 

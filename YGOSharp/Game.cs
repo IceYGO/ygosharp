@@ -620,17 +620,17 @@ namespace YGOSharp
                 opt += 0x20;
 
             Replay = new Replay((uint)seed, IsTag);
-            Replay.Writer.WriteUnicode(Players[0].Name, 20);
-            Replay.Writer.WriteUnicode(Players[1].Name, 20);
+            Replay.WriteUnicode(Players[0].Name, 20);
+            Replay.WriteUnicode(Players[1].Name, 20);
             if (IsTag)
             {
-                Replay.Writer.WriteUnicode(Players[2].Name, 20);
-                Replay.Writer.WriteUnicode(Players[3].Name, 20);
+                Replay.WriteUnicode(Players[2].Name, 20);
+                Replay.WriteUnicode(Players[3].Name, 20);
             }
-            Replay.Writer.Write(StartLp);
-            Replay.Writer.Write(StartHand);
-            Replay.Writer.Write(DrawCount);
-            Replay.Writer.Write(opt);
+            Replay.Write(StartLp);
+            Replay.Write(StartHand);
+            Replay.Write(DrawCount);
+            Replay.Write(opt);
 
             for (int i = 0; i < Players.Length; i++)
             {
@@ -638,22 +638,30 @@ namespace YGOSharp
                 int pid = i;
                 if (IsTag)
                     pid = i >= 2 ? 1 : 0;
+                bool HideDeckInfo = Config.GetBool("HideDeckInfo", false);
                 if (!NoShuffleDeck)
                 {
                     List<int> cards = ShuffleCards(rand, dplayer.Deck.Main);
-                    Replay.Writer.Write(cards.Count);
+                    if (!HideDeckInfo)
+                        Replay.Write(cards.Count);
+                    else
+                        Replay.Write(0);
                     foreach (int id in cards)
                     {
                         if (IsTag && (i == 1 || i == 3))
                             _duel.AddTagCard(id, pid, CardLocation.Deck);
                         else
                             _duel.AddCard(id, pid, CardLocation.Deck);
-                        Replay.Writer.Write(id);
+                        if(!HideDeckInfo)
+                            Replay.Write(id);
                     }
                 }
                 else
                 {
-                    Replay.Writer.Write(dplayer.Deck.Main.Count);
+                    if (!HideDeckInfo)
+                        Replay.Write(dplayer.Deck.Main.Count);
+                    else
+                        Replay.Write(0);
                     for (int j = dplayer.Deck.Main.Count - 1; j >= 0; j--)
                     {
                         int id = dplayer.Deck.Main[j];
@@ -661,18 +669,23 @@ namespace YGOSharp
                             _duel.AddTagCard(id, pid, CardLocation.Deck);
                         else
                             _duel.AddCard(id, pid, CardLocation.Deck);
-                        Replay.Writer.Write(id);
+                        if (!HideDeckInfo)
+                            Replay.Write(id);
                     }
                 }
-                Replay.Writer.Write(dplayer.Deck.Extra.Count);
+                if (!HideDeckInfo)
+                    Replay.Write(dplayer.Deck.Extra.Count);
+                else
+                    Replay.Write(0);
                 foreach (int id in dplayer.Deck.Extra)
                 {
                     if (IsTag && (i == 1 || i == 3))
                         _duel.AddTagCard(id, pid, CardLocation.Extra);
                     else
                         _duel.AddCard(id, pid, CardLocation.Extra);
-                    Replay.Writer.Write(id);
-                }
+                    if(!HideDeckInfo)
+                        Replay.Write(id);
+                    }
             }
 
             BinaryWriter packet = GamePacketFactory.Create(GameMessage.Start);
@@ -684,6 +697,9 @@ namespace YGOSharp
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Deck));
             packet.Write((short)_duel.QueryFieldCount(1, CardLocation.Extra));
             SendToTeam(packet, 0);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(packet);
 
             packet.BaseStream.Position = 2;
             packet.Write((byte)1);
@@ -759,6 +775,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.MonsterZone);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToTeam(update, player);
 
@@ -808,6 +828,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.SpellZone);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToTeam(update, player);
 
@@ -857,6 +881,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Hand);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 CurPlayers[player].Send(update);
 
@@ -901,6 +929,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Grave);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             if (observer == null)
                 SendToAll(update);
             else
@@ -914,6 +946,10 @@ namespace YGOSharp
             update.Write((byte)player);
             update.Write((byte)CardLocation.Extra);
             update.Write(result);
+
+            if (Config.GetBool("YRP2", false) && !Config.GetBool("HideDeckInfo", false))
+                Replay.Write(update);
+
             CurPlayers[player].Send(update);
         }
 
@@ -929,6 +965,9 @@ namespace YGOSharp
             update.Write((byte)location);
             update.Write((byte)sequence);
             update.Write(result);
+            if (Config.GetBool("YRP2", false))
+                Replay.Write(update);
+
             CurPlayers[player].Send(update);
 
             if (IsTag)
@@ -976,8 +1015,11 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                Replay.Writer.Write((byte)4);
-                Replay.Writer.Write(BitConverter.GetBytes(resp));
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)4);
+                    Replay.Write(BitConverter.GetBytes(resp));  
+                }
                 Replay.Check();
             }
 
@@ -989,8 +1031,12 @@ namespace YGOSharp
         {
             if (!Replay.Disabled)
             {
-                Replay.Writer.Write((byte)resp.Length);
-                Replay.Writer.Write(resp);
+                if (!Config.GetBool("YRP2", false))
+                {
+                    Replay.Write((byte)resp.Length);
+                    Replay.Write(resp);
+                    
+                }
                 Replay.Check();
             }
 

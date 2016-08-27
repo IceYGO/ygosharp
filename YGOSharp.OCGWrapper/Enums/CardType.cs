@@ -23,6 +23,7 @@
         Counter = 0x100000,
         Flip = 0x200000,
         Toon = 0x400000,
-        Xyz = 0x800000
+        Xyz = 0x800000,
+        Pendulum = 0x1000000
     }
 }

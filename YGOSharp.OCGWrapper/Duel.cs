@@ -13,14 +13,14 @@ namespace YGOSharp.OCGWrapper
         private readonly IntPtr _duelPtr;
         private readonly IntPtr _buffer;
 
-        private Func<GameMessage, BinaryReader, byte[], int> _analyzer;
+        private Func<GameMessage, BinaryReader, byte[], int, int> _analyzer;
         private Action<string> _errorHandler;
 
         #endregion
 
         #region Public Methods
 
-        public void SetAnalyzer(Func<GameMessage, BinaryReader, byte[], int> analyzer)
+        public void SetAnalyzer(Func<GameMessage, BinaryReader, byte[], int, int> analyzer)
         {
             _analyzer = analyzer;
         }
@@ -168,7 +168,7 @@ namespace YGOSharp.OCGWrapper
                 GameMessage msg = (GameMessage)reader.ReadByte();
                 int result = -1;
                 if (_analyzer != null)
-                    result = _analyzer.Invoke(msg, reader, raw);
+                    result = _analyzer.Invoke(msg, reader, raw, len);
                 if (result != 0)
                     return result;
             }
