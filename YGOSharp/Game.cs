@@ -744,51 +744,73 @@ namespace YGOSharp
 
         public void RefreshAllObserver(Player observer)
         {
-            RefreshMonsters(0, observer: observer);
-            RefreshMonsters(1, observer: observer);
-            RefreshSpells(0, observer: observer);
-            RefreshSpells(1, observer: observer);
-            RefreshHand(0, observer: observer);
-            RefreshHand(1, observer: observer);
+            RefreshMonsters(0, observer);
+            RefreshMonsters(1, observer);
+            RefreshSpells(0, observer);
+            RefreshSpells(1, observer);
+            RefreshHand(0, observer);
+            RefreshHand(1, observer);
+            RefreshGrave(0, observer);
+            RefreshGrave(1, observer);
+            RefreshExtra(0, observer);
+            RefreshExtra(1, observer);
+            RefreshRemoved(0, observer);
+            RefreshRemoved(1, observer);
         }
 
-        public void RefreshMonsters(int player, int flag = 0x81fff, Player observer = null)
+        public void RefreshMonsters(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, flag, false);
-            BinaryWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.MonsterZone);
-            update.Write(result);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.MonsterZone, result, observer);
+        }
+
+        public void RefreshSpells(int player, Player observer = null)
+        {
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.SpellZone, result, observer);
+        }
+
+        public void RefreshHand(int player, Player observer = null)
+        {
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.Hand, result, observer);
+        }
+
+        public void RefreshGrave(int player, Player observer = null)
+        {
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.Grave, result, observer);
+        }
+
+        public void RefreshRemoved(int player, Player observer = null)
+        {
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Removed, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.Removed, result, observer);
+        }
+
+        public void RefreshExtra(int player, Player observer = null)
+        {
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, 0x781fff, false);
+            SendToCorrectDestination(player, CardLocation.Extra, result, observer);
+        }
+
+        private void SendToCorrectDestination(int player, CardLocation location, byte[] result, Player observer)
+        {
+            BinaryWriter update;
+
             if (observer == null)
+            {
+                update = GamePacketFactory.Create(GameMessage.UpdateData);
+                update.Write((byte)player);
+                update.Write((byte)location);
+                update.Write(result);
                 SendToTeam(update, player);
+            }
 
             update = GamePacketFactory.Create(GameMessage.UpdateData);
             update.Write((byte)player);
-            update.Write((byte)CardLocation.MonsterZone);
-
-            MemoryStream ms = new MemoryStream(result);
-            BinaryReader reader = new BinaryReader(ms);
-            for (int i = 0; i < 5; i++)
-            {
-                int len = reader.ReadInt32();
-                if (len == 4)
-                {
-                    update.Write(4);
-                    continue;
-                }
-
-                byte[] raw = reader.ReadBytes(len - 4);
-                if ((raw[11] & (int)CardPosition.FaceDown) != 0)
-                {
-                    update.Write(8);
-                    update.Write(0);
-                }
-                else
-                {
-                    update.Write(len);
-                    update.Write(raw);
-                }
-            }
+            update.Write((byte)location);
+            WritePublicCards(update, result);
 
             if (observer == null)
             {
@@ -801,69 +823,8 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshSpells(int player, int flag = 0x681fff, Player observer = null)
+        private void WritePublicCards(BinaryWriter update, byte[] result)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, flag, false);
-            BinaryWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.SpellZone);
-            update.Write(result);
-            if (observer == null)
-                SendToTeam(update, player);
-
-            update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.SpellZone);
-
-            MemoryStream ms = new MemoryStream(result);
-            BinaryReader reader = new BinaryReader(ms);
-            for (int i = 0; i < 8; i++)
-            {
-                int len = reader.ReadInt32();
-                if (len == 4)
-                {
-                    update.Write(4);
-                    continue;
-                }
-
-                byte[] raw = reader.ReadBytes(len - 4);
-                if ((raw[11] & (int)CardPosition.FaceDown) != 0)
-                {
-                    update.Write(8);
-                    update.Write(0);
-                }
-                else
-                {
-                    update.Write(len);
-                    update.Write(raw);
-                }
-            }
-
-            if (observer == null)
-            {
-                SendToTeam(update, 1 - player);
-                SendToObservers(update);
-            }
-            else
-            {
-                observer.Send(update);
-            }
-        }
-
-        public void RefreshHand(int player, int flag = 0x181fff, Player observer = null)
-        {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, flag | 0x100000, false);
-            BinaryWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.Hand);
-            update.Write(result);
-            if (observer == null)
-                CurPlayers[player].Send(update);
-
-            update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.Hand);
-
             MemoryStream ms = new MemoryStream(result);
             BinaryReader reader = new BinaryReader(ms);
             while (ms.Position < ms.Length)
@@ -876,45 +837,19 @@ namespace YGOSharp
                 }
 
                 byte[] raw = reader.ReadBytes(len - 4);
-                if (raw[len - 8] == 0)
-                {
-                    update.Write(8);
-                    update.Write(0);
-                }
-                else
+                bool isFaceup = (raw[11] & (int)CardPosition.FaceUp) != 0;
+                bool isPublic = (raw[len - 8]) != 0;
+                if (isFaceup || isPublic)
                 {
                     update.Write(len);
                     update.Write(raw);
                 }
+                else
+                {
+                    update.Write(8);
+                    update.Write(0);
+                }
             }
-
-            if (observer == null)
-                SendToAllBut(update, player);
-            else
-                observer.Send(update);
-        }
-
-        public void RefreshGrave(int player, int flag = 0x81fff, Player observer = null)
-        {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, flag, false);
-            BinaryWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.Grave);
-            update.Write(result);
-            if (observer == null)
-                SendToAll(update);
-            else
-                observer.Send(update);
-        }
-
-        public void RefreshExtra(int player, int flag = 0x81fff)
-        {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, flag, false);
-            BinaryWriter update = GamePacketFactory.Create(GameMessage.UpdateData);
-            update.Write((byte)player);
-            update.Write((byte)CardLocation.Extra);
-            update.Write(result);
-            CurPlayers[player].Send(update);
         }
 
         public void RefreshSingle(int player, int location, int sequence, int flag = 0x781fff)
