@@ -19,7 +19,8 @@ namespace YGOSharp.Network.Utils
         {
             byte[] unicode = reader.ReadBytes(len * 2);
             string text = Encoding.Unicode.GetString(unicode);
-            text = text.Substring(0, text.IndexOf('\0'));
+            int index = text.IndexOf('\0');
+            if (index > 0) text = text.Substring(0, index);
             return text;
         }
 
