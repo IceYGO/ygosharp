@@ -611,8 +611,8 @@ namespace YGOSharp
                     packet.Write(0);
             }
 
-            SendToPlayer(msg, player);
-            Game.SendToAllBut(packet, player);
+            SendToTeam(msg, player);
+            SendToOpponentTeam(packet, player);
         }
 
         private void OnLpUpdate(CoreMessage msg)
@@ -761,6 +761,23 @@ namespace YGOSharp
             BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             packet.Write(buffer);
             Game.CurPlayers[player].Send(packet);
+        }
+
+        private void SendToTeam(CoreMessage msg, int player)
+        {
+            if (player != 0 && player != 1)
+                return;
+            byte[] buffer = msg.CreateBuffer();
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
+            packet.Write(buffer);
+            Game.SendToTeam(packet, player);
+        }
+
+        private void SendToOpponentTeam(BinaryWriter packet, int player)
+        {
+            if (player != 0 && player != 1)
+                return;
+            Game.SendToTeam(packet, 1 - player);
         }
     }
 }
