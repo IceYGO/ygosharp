@@ -67,6 +67,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\YGOSharp.OCGWrapper.Enums\YGOSharp.OCGWrapper.Enums.csproj">
+      <Project>{ad18e0aa-1eed-4a2c-a251-b1bf9097892b}</Project>
+      <Name>YGOSharp.OCGWrapper.Enums</Name>
+    </ProjectReference>
     <ProjectReference Include="..\YGOSharp.OCGWrapper\YGOSharp.OCGWrapper.csproj">
       <Project>{79b4527f-0fbe-4756-a4b3-7da9c73f25ab}</Project>
       <Name>YGOSharp.OCGWrapper</Name>

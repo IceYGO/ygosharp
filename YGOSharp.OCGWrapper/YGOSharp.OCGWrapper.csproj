@@ -46,14 +46,6 @@
     <Compile Include="Card.cs" />
     <Compile Include="CardsManager.cs" />
     <Compile Include="Duel.cs" />
-    <Compile Include="Enums\CardAttribute.cs" />
-    <Compile Include="Enums\CardLocation.cs" />
-    <Compile Include="Enums\CardPosition.cs" />
-    <Compile Include="Enums\CardRace.cs" />
-    <Compile Include="Enums\CardType.cs" />
-    <Compile Include="Enums\DuelPhase.cs" />
-    <Compile Include="Enums\GameMessage.cs" />
-    <Compile Include="Enums\Query.cs" />
     <Compile Include="MtRandom.cs" />
     <Compile Include="NamedCard.cs" />
     <Compile Include="NamedCardsManager.cs" />
@@ -63,6 +55,12 @@
     <None Include="sqlite3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\YGOSharp.OCGWrapper.Enums\YGOSharp.OCGWrapper.Enums.csproj">
+      <Project>{ad18e0aa-1eed-4a2c-a251-b1bf9097892b}</Project>
+      <Name>YGOSharp.OCGWrapper.Enums</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
