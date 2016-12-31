@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("IceYGO")]
 [assembly: AssemblyProduct("YGOSharp.OCGWrapper.Enums")]
-[assembly: AssemblyCopyright("Copyright © IceYGO 2015-2016")]
+[assembly: AssemblyCopyright("Copyright © IceYGO 2015-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
