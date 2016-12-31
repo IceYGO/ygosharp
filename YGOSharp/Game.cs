@@ -838,8 +838,7 @@ namespace YGOSharp
 
                 byte[] raw = reader.ReadBytes(len - 4);
                 bool isFaceup = (raw[11] & (int)CardPosition.FaceUp) != 0;
-                bool isPublic = (raw[len - 8]) != 0;
-                if (isFaceup || isPublic)
+                if (isFaceup)
                 {
                     update.Write(len);
                     update.Write(raw);
