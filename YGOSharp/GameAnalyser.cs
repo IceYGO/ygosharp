@@ -613,6 +613,7 @@ namespace YGOSharp
 
             SendToTeam(msg, player);
             SendToOpponentTeam(packet, player);
+            Game.SendToObservers(packet);
         }
 
         private void OnLpUpdate(CoreMessage msg)
