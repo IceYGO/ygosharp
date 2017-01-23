@@ -83,6 +83,7 @@
         AnnounceAttrib = 141,
         AnnounceCard = 142,
         AnnounceNumber = 143,
+        AnnounceCardFilter = 144,
         CardHint = 160,
         TagSwap = 161,
         ReloadField = 162,

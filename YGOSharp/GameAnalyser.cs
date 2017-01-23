@@ -215,6 +215,9 @@ namespace YGOSharp
                 case GameMessage.AnnounceNumber:
                     OnAnnounceNumber(cmsg);
                     return 1;
+                case GameMessage.AnnounceCardFilter:
+                    OnAnnounceCardFilter(cmsg);
+                    return 1;
                 case GameMessage.CardHint:
                     SendToAll(cmsg, 9);
                     break;
@@ -396,9 +399,9 @@ namespace YGOSharp
         private void OnSelectCounter(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
-            msg.Reader.ReadBytes(3);
+            msg.Reader.ReadBytes(4);
             int count = msg.Reader.ReadByte();
-            msg.Reader.ReadBytes(count * 8);
+            msg.Reader.ReadBytes(count * 9);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }
@@ -680,6 +683,15 @@ namespace YGOSharp
         }
 
         private void OnAnnounceNumber(CoreMessage msg)
+        {
+            int player = msg.Reader.ReadByte();
+            int count = msg.Reader.ReadByte();
+            msg.Reader.ReadBytes(count * 4);
+            Game.WaitForResponse(player);
+            SendToPlayer(msg, player);
+        }
+
+        private void OnAnnounceCardFilter(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
