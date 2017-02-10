@@ -60,7 +60,6 @@ namespace YGOSharp
         private DateTime? _time;
         
         private bool _matchKill;
-        private bool _swapped;
 
         public event Action<object, EventArgs> OnNetworkReady;
         public event Action<object, EventArgs> OnNetworkEnd;
@@ -569,37 +568,22 @@ namespace YGOSharp
                 return;
             if (player.Type != _startplayer)
                 return;
-
-            _swapped = false;
+            
+            int opt = 0;
+            if (EnablePriority)
+                opt += 0x08;
+            if (NoShuffleDeck)
+                opt += 0x10;
+            if (IsTag)
+                opt += 0x20;
+            
             if (result && player.Type == (IsTag ? 2 : 1) || !result && player.Type == 0)
             {
-                _swapped = true;
-                if (IsTag)
-                {
-                    Player temp = Players[0];
-                    Players[0] = Players[2];
-                    Players[2] = temp;
-
-                    temp = Players[1];
-                    Players[1] = Players[3];
-                    Players[3] = temp;
-
-                    Players[0].Type = 0;
-                    Players[1].Type = 1;
-                    Players[2].Type = 2;
-                    Players[3].Type = 3;
-                }
-                else
-                {
-                    Player temp = Players[0];
-                    Players[0] = Players[1];
-                    Players[1] = temp;
-                    Players[0].Type = 0;
-                    Players[1].Type = 1;
-                }
+                opt += 0x80;
             }
+
             CurPlayers[0] = Players[0];
-            CurPlayers[1] = Players[IsTag ? 3 : 1];
+            CurPlayers[1] = Players[IsTag ? 2 : 1];
 
             State = GameState.Duel;
             int seed = Environment.TickCount;
@@ -610,14 +594,6 @@ namespace YGOSharp
             _duel.SetErrorHandler(HandleError);
 
             _duel.InitPlayers(StartLp, StartHand, DrawCount);
-
-            int opt = 0;
-            if (EnablePriority)
-                opt += 0x08;
-            if (NoShuffleDeck)
-                opt += 0x10;
-            if (IsTag)
-                opt += 0x20;
 
             Replay = new Replay((uint)seed, IsTag);
             Replay.Writer.WriteUnicode(Players[0].Name, 20);
@@ -634,7 +610,7 @@ namespace YGOSharp
 
             for (int i = 0; i < Players.Length; i++)
             {
-                Player dplayer = Players[i == 2 ? 3 : (i == 3 ? 2 : i)];
+                Player dplayer = Players[i];
                 int pid = i;
                 if (IsTag)
                     pid = i >= 2 ? 1 : 0;
@@ -690,10 +666,7 @@ namespace YGOSharp
             SendToTeam(packet, 1);
 
             packet.BaseStream.Position = 2;
-            if (_swapped)
-                packet.Write((byte)0x11);
-            else
-                packet.Write((byte)0x10);
+            packet.Write((byte)0x10);
             SendToObservers(packet);
 
             RefreshExtra(0);
@@ -954,34 +927,6 @@ namespace YGOSharp
                 _duel.End();
             }
 
-            if (_swapped)
-            {
-                _swapped = false;
-                if (IsTag)
-                {
-                    Player temp = Players[0];
-                    Players[0] = Players[2];
-                    Players[2] = temp;
-
-                    temp = Players[1];
-                    Players[1] = Players[3];
-                    Players[3] = temp;
-
-                    Players[0].Type = 0;
-                    Players[1].Type = 1;
-                    Players[2].Type = 2;
-                    Players[3].Type = 3;
-                }
-                else
-                {
-                    Player temp = Players[0];
-                    Players[0] = Players[1];
-                    Players[1] = temp;
-                    Players[0].Type = 0;
-                    Players[1].Type = 1;
-                }
-            }
-
             if (IsMatch && !force && !MatchIsEnd())
             {
                 IsReady[0] = false;
@@ -1095,8 +1040,6 @@ namespace YGOSharp
 
         public void MatchSaveResult(int player, int reason)
         {
-            if (player < 2 && _swapped)
-                player = 1 - player;
             if (player < 2)
                 _startplayer = 1 - player;
             else
@@ -1201,20 +1144,7 @@ namespace YGOSharp
             for (int i = 0; i < Players.Length; i++)
             {
                 BinaryWriter enter = GamePacketFactory.Create(StocMessage.HsPlayerEnter);
-                int id = i;
-                if (_swapped)
-                {
-                    if (IsTag)
-                    {
-                        if (i == 0 || id == 1)
-                            id = i + 2;
-                        else
-                            id = i - 2;
-                    }
-                    else
-                        id = 1 - i;
-                }
-                enter.WriteUnicode(Players[id].Name, 20);
+                enter.WriteUnicode(Players[i].Name, 20);
                 enter.Write((byte)i);
                 //padding
                 enter.Write((byte)0);
@@ -1225,7 +1155,7 @@ namespace YGOSharp
         private void InitNewSpectator(Player player)
         {
             BinaryWriter packet = GamePacketFactory.Create(GameMessage.Start);
-            packet.Write((byte)(_swapped ? 0x11 : 0x10));
+            packet.Write((byte)0x10);
             packet.Write(LifePoints[0]);
             packet.Write(LifePoints[1]);
             packet.Write((short)0); // deck
