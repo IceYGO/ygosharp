@@ -221,12 +221,15 @@ namespace YGOSharp
                 case GameMessage.CardHint:
                     SendToAll(cmsg, 9);
                     break;
+                case GameMessage.PlayerHint:
+                    SendToAll(cmsg, 6);
+                    break;
                 case GameMessage.MatchKill:
                     OnMatchKill(cmsg);
                     break;
                 case GameMessage.TagSwap:
                     OnTagSwap(cmsg);
-                    break; 
+                    break;
                 default:
                     throw new Exception("[GameAnalyser] Unhandled packet id: " + msg);
             }

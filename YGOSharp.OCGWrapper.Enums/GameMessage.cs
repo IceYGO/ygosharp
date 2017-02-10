@@ -89,6 +89,7 @@
         ReloadField = 162,
         AiName = 163,
         ShowHint = 164,
+        PlayerHint = 165,
         MatchKill = 170,
         CustomMsg = 180,
         DuelWinner = 200
