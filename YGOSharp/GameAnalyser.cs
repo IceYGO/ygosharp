@@ -495,23 +495,6 @@ namespace YGOSharp
             Game.CurrentPlayer = msg.Reader.ReadByte();
             SendToAll(msg);
 
-            if (Game.IsTag && Game.TurnCount > 0)
-            {
-                if (Game.TurnCount % 2 == 0)
-                {
-                    if (Game.CurPlayers[0].Equals(Game.Players[0]))
-                        Game.CurPlayers[0] = Game.Players[1];
-                    else
-                        Game.CurPlayers[0] = Game.Players[0];
-                }
-                else
-                {
-                    if (Game.CurPlayers[1].Equals(Game.Players[2]))
-                        Game.CurPlayers[1] = Game.Players[3];
-                    else
-                        Game.CurPlayers[1] = Game.Players[2];
-                }
-            }
             Game.TurnCount++;
         }
 
@@ -737,6 +720,11 @@ namespace YGOSharp
                 else
                     packet.Write(0);
             }
+
+            if (Game.CurPlayers[player].Equals(Game.Players[player * 2]))
+                Game.CurPlayers[player] = Game.Players[player * 2 + 1];
+            else
+                Game.CurPlayers[player] = Game.Players[player * 2];
 
             SendToPlayer(msg, player);
             Game.SendToAllBut(packet, player);
