@@ -70,7 +70,7 @@
         RemoveCounter = 102,
         Attack = 110,
         Battle = 111,
-        AttackDiabled = 112,
+        AttackDisabled = 112,
         DamageStepStart = 113,
         DamageStepEnd = 114,
         MissedEffect = 120,

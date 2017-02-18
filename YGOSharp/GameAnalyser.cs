@@ -187,7 +187,7 @@ namespace YGOSharp
                 case GameMessage.Battle:
                     SendToAll(cmsg, 26);
                     break;
-                case GameMessage.AttackDiabled:
+                case GameMessage.AttackDisabled:
                     SendToAll(cmsg, 0);
                     break;
                 case GameMessage.DamageStepStart:
