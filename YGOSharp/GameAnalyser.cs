@@ -7,7 +7,6 @@ namespace YGOSharp
     public class GameAnalyser
     {
         public Game Game { get; private set; }
-        public GameMessage LastMessage { get; private set; }
 
         public GameAnalyser(Game game)
         {
@@ -16,7 +15,6 @@ namespace YGOSharp
 
         public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw)
         {
-            LastMessage = msg;
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
             switch (msg)
             {
