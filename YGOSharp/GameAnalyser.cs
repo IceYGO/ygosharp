@@ -242,7 +242,6 @@ namespace YGOSharp
             Game.CurPlayers[player].Send(GamePacketFactory.Create(GameMessage.Retry));
 
             Game.Replay.End();
-            //File.WriteAllBytes("error_" + DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss") + ".yrp", Game.Replay.GetFile());
         }
 
         private void OnHint(CoreMessage msg)

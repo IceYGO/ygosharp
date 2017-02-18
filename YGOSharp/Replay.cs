@@ -53,6 +53,7 @@ namespace YGOSharp
         {
             if (Disabled)
                 return;
+            Disabled = true;
 
             byte[] raw = _stream.ToArray();
 
