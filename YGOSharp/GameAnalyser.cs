@@ -201,6 +201,12 @@ namespace YGOSharp
                 case GameMessage.TossDice:
                     OnTossCoin(cmsg);
                     break;
+                case GameMessage.RockPaperScissors:
+                    OnRockPaperScissors(cmsg);
+                    return 1;
+                case GameMessage.HandResult:
+                    SendToAll(cmsg, 1);
+                    break;
                 case GameMessage.AnnounceRace:
                     OnAnnounceRace(cmsg);
                     return 1;
@@ -639,6 +645,13 @@ namespace YGOSharp
             int count = msg.Reader.ReadByte();
             msg.Reader.ReadBytes(count);
             SendToAll(msg);
+        }
+
+        private void OnRockPaperScissors(CoreMessage msg)
+        {
+            int player = msg.Reader.ReadByte();
+            Game.WaitForResponse(player);
+            SendToPlayer(msg, player);
         }
 
         private void OnAnnounceRace(CoreMessage msg)

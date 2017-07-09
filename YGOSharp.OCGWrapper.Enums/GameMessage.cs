@@ -79,6 +79,8 @@
         ReleaseRelation = 123,
         TossCoin = 130,
         TossDice = 131,
+        RockPaperScissors = 132,
+        HandResult = 133,
         AnnounceRace = 140,
         AnnounceAttrib = 141,
         AnnounceCard = 142,
