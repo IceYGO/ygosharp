@@ -93,7 +93,7 @@ namespace YGOSharp.OCGWrapper
             return Api.query_field_count(_duelPtr, (byte)player, (byte)location);
         }
 
-        public byte[] QueryFieldCard(int player, CardLocation location, int flag, bool useCache)
+        public byte[] QueryFieldCard(int player, CardLocation location, int flag = 0xFFFFFF, bool useCache = false)
         {
             int len = Api.query_field_card(_duelPtr, (byte)player, (byte)location, flag, _buffer, useCache ? 1 : 0);
             byte[] result = new byte[len];
@@ -101,9 +101,9 @@ namespace YGOSharp.OCGWrapper
             return result;
         }
 
-        public byte[] QueryCard(int player, int location, int sequence, int flag)
+        public byte[] QueryCard(int player, int location, int sequence, int flag = 0xFFFFFF, bool useCache = false)
         {
-            int len = Api.query_card(_duelPtr, (byte)player, (byte)location, (byte)sequence, flag, _buffer, 0);
+            int len = Api.query_card(_duelPtr, (byte)player, (byte)location, (byte)sequence, flag, _buffer, useCache ? 1 : 0);
             byte[] result = new byte[len];
             Marshal.Copy(_buffer, result, 0, len);
             return result;

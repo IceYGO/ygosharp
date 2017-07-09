@@ -448,6 +448,7 @@ namespace YGOSharp
                 bool ocg = Rule == 0 || Rule == 2;
                 bool tcg = Rule == 1 || Rule == 2;
                 int result = 1;
+                
                 if (player.Deck != null)
                 {
                     result = NoCheckDeck ? 0 : player.Deck.Check(Banlist, ocg, tcg);
@@ -733,37 +734,37 @@ namespace YGOSharp
 
         public void RefreshMonsters(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.MonsterZone);
             SendToCorrectDestination(player, CardLocation.MonsterZone, result, observer);
         }
 
         public void RefreshSpells(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.SpellZone);
             SendToCorrectDestination(player, CardLocation.SpellZone, result, observer);
         }
 
         public void RefreshHand(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Hand);
             SendToCorrectDestination(player, CardLocation.Hand, result, observer);
         }
 
         public void RefreshGrave(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Grave);
             SendToCorrectDestination(player, CardLocation.Grave, result, observer);
         }
 
         public void RefreshRemoved(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Removed, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Removed);
             SendToCorrectDestination(player, CardLocation.Removed, result, observer);
         }
 
         public void RefreshExtra(int player, Player observer = null)
         {
-            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra, 0x781fff, false);
+            byte[] result = _duel.QueryFieldCard(player, CardLocation.Extra);
             SendToCorrectDestination(player, CardLocation.Extra, result, observer);
         }
 
@@ -824,9 +825,9 @@ namespace YGOSharp
             }
         }
 
-        public void RefreshSingle(int player, int location, int sequence, int flag = 0x781fff)
+        public void RefreshSingle(int player, int location, int sequence)
         {
-            byte[] result = _duel.QueryCard(player, location, sequence, flag);
+            byte[] result = _duel.QueryCard(player, location, sequence);
 
             if (location == (int)CardLocation.Removed && (result[15] & (int)CardPosition.FaceDown) != 0)
                 return;
