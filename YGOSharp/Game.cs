@@ -17,7 +17,8 @@ namespace YGOSharp
 
         public Banlist Banlist { get; private set; }
         public int Mode { get; set; }
-        public int Rule { get; set; }
+        public int Region { get; set; }
+        public int MasterRule { get; set; }
         public int StartLp { get; set; }
         public int StartHand { get; set; }
         public int DrawCount { get; set; }
@@ -76,7 +77,13 @@ namespace YGOSharp
         {
             State = GameState.Lobby;
             Mode = Config.GetInt("Mode");
-            Rule = Config.GetInt("Rule");
+            Region = Config.GetInt("Rule", -1);
+            if (Region != -1)
+                Console.Error.WriteLine("'Rule' is deprecated, please use 'Region' instead.");
+            else
+                Region = Config.GetInt("Region");
+            MasterRule = Config.GetInt("MasterRule", 3);
+
             IsMatch = Mode == 1;
             IsTag = Mode == 2;
             CurrentPlayer = 0;
@@ -114,7 +121,8 @@ namespace YGOSharp
             uint lfList = packet.ReadUInt32();
             if (lfList >= 0 && lfList < BanlistManager.Banlists.Count)
                 Banlist = BanlistManager.Banlists[BanlistManager.GetIndex(lfList)];
-            Rule = packet.ReadByte();
+            Region = packet.ReadByte();
+            MasterRule = packet.ReadByte();
             Mode = packet.ReadByte();
             IsMatch = Mode == 1;
             IsTag = Mode == 2;
@@ -445,8 +453,8 @@ namespace YGOSharp
 
             if (ready)
             {
-                bool ocg = Rule == 0 || Rule == 2;
-                bool tcg = Rule == 1 || Rule == 2;
+                bool ocg = Region == 0 || Region == 2;
+                bool tcg = Region == 1 || Region == 2;
                 int result = 1;
                 
                 if (player.Deck != null)
@@ -570,7 +578,7 @@ namespace YGOSharp
             if (player.Type != _startplayer)
                 return;
             
-            int opt = 0;
+            int opt = MasterRule << 16;
             if (EnablePriority)
                 opt += 0x08;
             if (NoShuffleDeck)
@@ -1122,7 +1130,7 @@ namespace YGOSharp
         {
             BinaryWriter join = GamePacketFactory.Create(StocMessage.JoinGame);
             join.Write(Banlist == null ? 0U : Banlist.Hash);
-            join.Write((byte)Rule);
+            join.Write((byte)Region);
             join.Write((byte)Mode);
             join.Write(EnablePriority);
             join.Write(NoCheckDeck);
