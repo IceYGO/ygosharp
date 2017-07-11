@@ -1132,7 +1132,7 @@ namespace YGOSharp
             join.Write(Banlist == null ? 0U : Banlist.Hash);
             join.Write((byte)Region);
             join.Write((byte)Mode);
-            join.Write(EnablePriority);
+            join.Write((byte)MasterRule);
             join.Write(NoCheckDeck);
             join.Write(NoShuffleDeck);
             // C++ padding: 5 bytes + 3 bytes = 8 bytes
