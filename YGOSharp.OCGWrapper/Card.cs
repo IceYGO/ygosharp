@@ -18,6 +18,7 @@ namespace YGOSharp.OCGWrapper
             public int Defense;
             public int LScale;
             public int RScale;
+            public int LinkMarker;
         }
 
         public int Id { get; private set; }
@@ -34,6 +35,8 @@ namespace YGOSharp.OCGWrapper
         public int Race { get; private set; }
         public int Attack { get; private set; }
         public int Defense { get; private set; }
+
+        public int LinkMarker { get; private set; }
 
         internal CardData Data { get; private set; }
 
@@ -70,6 +73,12 @@ namespace YGOSharp.OCGWrapper
             Attack = reader.GetInt32(8);
             Defense = reader.GetInt32(9);
 
+            if (HasType(CardType.Link))
+            {
+                Defense = 0;
+                LinkMarker = Defense;
+            }
+
             Data = new CardData()
             {
                 Code = Id,
@@ -82,7 +91,8 @@ namespace YGOSharp.OCGWrapper
                 Attack = Attack,
                 Defense = Defense,
                 LScale = LScale,
-                RScale = RScale
+                RScale = RScale,
+                LinkMarker = LinkMarker
             };
         }
     }
