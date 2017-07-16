@@ -75,8 +75,8 @@ namespace YGOSharp.OCGWrapper
 
             if (HasType(CardType.Link))
             {
-                Defense = 0;
                 LinkMarker = Defense;
+                Defense = 0;
             }
 
             Data = new CardData()
