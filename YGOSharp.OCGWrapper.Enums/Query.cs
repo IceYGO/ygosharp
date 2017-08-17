@@ -24,6 +24,7 @@
         IsDisabled = 0x80000,
         IsPublic = 0x100000,
         LScale = 0x200000,
-        RScale = 0x400000
+        RScale = 0x400000,
+        Link = 0x800000
     }
 }
