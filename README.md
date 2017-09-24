@@ -20,7 +20,7 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 
 * `ConfigFile` (default: none)
 
-* `ClientVersion` (default: `0x1339`)
+* `ClientVersion` (default: `0x133D`)
 
 * `Port` (default: `7911`)
 
