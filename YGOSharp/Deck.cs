@@ -24,7 +24,7 @@ namespace YGOSharp
                 return;
             if ((card.Type & (int)CardType.Token) != 0)
                 return;
-            if ((card.Type & 0x802040) != 0)
+            if (card.IsExtraCard())
             {
                 if (Extra.Count < 15)
                     Extra.Add(cardId);

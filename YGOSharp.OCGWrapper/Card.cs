@@ -52,7 +52,7 @@ namespace YGOSharp.OCGWrapper
 
         public bool IsExtraCard()
         {
-            return (HasType(CardType.Fusion) || HasType(CardType.Synchro) || HasType(CardType.Xyz));
+            return (HasType(CardType.Fusion) || HasType(CardType.Synchro) || HasType(CardType.Xyz) || HasType(CardType.Link));
         }
 
         internal Card(IDataRecord reader)
