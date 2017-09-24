@@ -36,9 +36,11 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 
 ### Game
 
-* `Rule` (default: `0`)
-
 * `Mode` (default: `0`)
+
+* `Region` (default: `0`)
+
+* `MasterRule` (default: `3`)
 
 * `Banlist` (default: `0`)
 
@@ -67,6 +69,8 @@ A C# implementation of an ygopro duel server, using the ocgcore library.
 ### Legacy
 
 * `EnablePriority` (default: `false`)
+
+* `Rule` (old alias for `Region`)
 
 ### Addons
 
