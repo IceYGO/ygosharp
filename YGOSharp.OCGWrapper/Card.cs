@@ -30,13 +30,12 @@ namespace YGOSharp.OCGWrapper
         public int Level { get; private set; }
         public int LScale { get; private set; }
         public int RScale { get; private set; }
+        public int LinkMarker { get; private set; }
 
         public int Attribute { get; private set; }
         public int Race { get; private set; }
         public int Attack { get; private set; }
         public int Defense { get; private set; }
-
-        public int LinkMarker { get; private set; }
 
         internal CardData Data { get; private set; }
 
