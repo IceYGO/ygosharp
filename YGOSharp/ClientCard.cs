@@ -100,6 +100,11 @@ namespace YGOSharp
                 reader.ReadInt32();
             if ((flag & (int)Query.RScale) != 0)
                 reader.ReadInt32();
+            if ((flag & (int)Query.Link) != 0)
+            {
+                reader.ReadInt32();
+                reader.ReadInt32();
+            }
         }
     }
 }
