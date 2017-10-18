@@ -25,11 +25,12 @@ namespace YGOSharp.Network
         private int _pendingLength;
         private bool _wasConnected;
         private bool _wasDisconnected;
+        private bool _wasDisconnectedEventFired;
         private Exception _closingException;
 
         public bool IsConnected
         {
-            get { return _client.IsConnected; }
+            get { return !_wasDisconnectedEventFired; }
         }
 
         public IPAddress RemoteIPAddress
@@ -69,9 +70,9 @@ namespace YGOSharp.Network
                 Connected?.Invoke();
             }
             ReceivePendingPackets();
-            if (_wasDisconnected)
+            if (_wasDisconnected && !_wasDisconnectedEventFired)
             {
-                _wasDisconnected = false;
+                _wasDisconnectedEventFired = true;
                 Disconnected?.Invoke(_closingException);
             }
         }

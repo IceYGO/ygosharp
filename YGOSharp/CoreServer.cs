@@ -55,8 +55,7 @@ namespace YGOSharp
 
         public void Stop()
         {
-            if (IsListening)
-                StopListening();
+            StopListening();
             foreach (YGOClient client in _clients)
                 client.Close();
             Game.Stop();
@@ -65,9 +64,8 @@ namespace YGOSharp
 
         public void StopDelayed()
         {
+            StopListening();
             _closePending = true;
-            foreach (YGOClient client in _clients)
-                client.Close();
         }
 
         public void AddClient(YGOClient client)
