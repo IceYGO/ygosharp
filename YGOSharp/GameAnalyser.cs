@@ -66,6 +66,9 @@ namespace YGOSharp
                 case GameMessage.ConfirmDecktop:
                     OnConfirmDecktop(cmsg);
                     break;
+                case GameMessage.ConfirmExtratop:
+                    OnConfirmExtratop(cmsg);
+                    break;
                 case GameMessage.ConfirmCards:
                     OnConfirmCards(cmsg);
                     break;
@@ -75,6 +78,9 @@ namespace YGOSharp
                     break;
                 case GameMessage.ShuffleHand:
                     OnShuffleHand(cmsg);
+                    break;
+                case GameMessage.ShuffleExtra:
+                    OnShuffleExtra(cmsg);
                     break;
                 case GameMessage.SwapGraveDeck:
                     OnSwapGraveDeck(cmsg);
@@ -442,6 +448,14 @@ namespace YGOSharp
             SendToAll(msg);
         }
 
+        private void OnConfirmExtratop(CoreMessage msg)
+        {
+            msg.Reader.ReadByte();
+            int count = msg.Reader.ReadByte();
+            msg.Reader.ReadBytes(count * 7);
+            SendToAll(msg);
+        }
+
         private void OnConfirmCards(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
@@ -458,6 +472,23 @@ namespace YGOSharp
         }
 
         private void OnShuffleHand(CoreMessage msg)
+        {
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
+            int player = msg.Reader.ReadByte();
+            int count = msg.Reader.ReadByte();
+            packet.Write((byte)player);
+            packet.Write((byte)count);
+
+            msg.Reader.ReadBytes(count * 4);
+            for (int i = 0; i < count; i++)
+                packet.Write(0);
+
+            SendToPlayer(msg, player);
+            Game.SendToAllBut(packet, player);
+            Game.RefreshHand(player);
+        }
+
+        private void OnShuffleExtra(CoreMessage msg)
         {
             BinaryWriter packet = GamePacketFactory.Create(msg.Message);
             int player = msg.Reader.ReadByte();
