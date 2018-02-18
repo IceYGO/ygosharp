@@ -87,7 +87,7 @@ namespace YGOSharp.OCGWrapper
 
             Duel.Duels = new Dictionary<IntPtr, Duel>();
 
-            _buffer = Marshal.AllocHGlobal(65536);
+            _buffer = Marshal.AllocHGlobal(1024 * 128); // 128 KiB
 
             _cardCallback = OnCardReader;
             _scriptCallback = OnScriptReader;
