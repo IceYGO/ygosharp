@@ -25,6 +25,7 @@
         SelectSum = 23,
         SelectDisfield = 24,
         SortCard = 25,
+        SelectUnselect = 26,
         ConfirmDecktop = 30,
         ConfirmCards = 31,
         ShuffleDeck = 32,

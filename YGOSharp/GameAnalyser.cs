@@ -46,6 +46,9 @@ namespace YGOSharp
                 case GameMessage.SelectTribute:
                     OnSelectCard(cmsg);
                     return 1;
+                case GameMessage.SelectUnselect:
+                    OnSelectUnselect(cmsg);
+                    return 1;
                 case GameMessage.SelectChain:
                     return OnSelectChain(cmsg);
                 case GameMessage.SelectPlace:
@@ -363,6 +366,52 @@ namespace YGOSharp
             packet.Write(msg.Reader.ReadBytes(3));
 
             int count = msg.Reader.ReadByte();
+            packet.Write((byte)count);
+
+            for (int i = 0; i < count; i++)
+            {
+                int code = msg.Reader.ReadInt32();
+                int pl = msg.Reader.ReadByte();
+                int loc = msg.Reader.ReadByte();
+                int seq = msg.Reader.ReadByte();
+                int pos = msg.Reader.ReadByte();
+                packet.Write(pl == player ? code : 0);
+                packet.Write((byte)pl);
+                packet.Write((byte)loc);
+                packet.Write((byte)seq);
+                packet.Write((byte)pos);
+            }
+
+            Game.WaitForResponse(player);
+            Game.CurPlayers[player].Send(packet);
+        }
+
+        private void OnSelectUnselect(CoreMessage msg)
+        {
+            BinaryWriter packet = GamePacketFactory.Create(msg.Message);
+
+            int player = msg.Reader.ReadByte();
+            packet.Write((byte)player);
+            packet.Write(msg.Reader.ReadBytes(4));
+
+            int count = msg.Reader.ReadByte();
+            packet.Write((byte)count);
+
+            for (int i = 0; i < count; i++)
+            {
+                int code = msg.Reader.ReadInt32();
+                int pl = msg.Reader.ReadByte();
+                int loc = msg.Reader.ReadByte();
+                int seq = msg.Reader.ReadByte();
+                int pos = msg.Reader.ReadByte();
+                packet.Write(pl == player ? code : 0);
+                packet.Write((byte)pl);
+                packet.Write((byte)loc);
+                packet.Write((byte)seq);
+                packet.Write((byte)pos);
+            }
+
+            count = msg.Reader.ReadByte();
             packet.Write((byte)count);
 
             for (int i = 0; i < count; i++)
