@@ -335,7 +335,7 @@ namespace YGOSharp
         private void OnSelectEffectYn(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
-            msg.Reader.ReadBytes(8);
+            msg.Reader.ReadBytes(12);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }
