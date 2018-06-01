@@ -563,11 +563,20 @@ namespace YGOSharp
 
         private void OnShuffleSetCard(CoreMessage msg)
         {
+            int location = msg.Reader.ReadByte();
             int count = msg.Reader.ReadByte();
             msg.Reader.ReadBytes(count * 8);
             SendToAll(msg);
-            Game.RefreshMonsters(0);
-            Game.RefreshMonsters(1);
+            if (location == (int)CardLocation.MonsterZone)
+            {
+                Game.RefreshMonsters(0);
+                Game.RefreshMonsters(1);
+            }
+            else
+            {
+                Game.RefreshSpells(0);
+                Game.RefreshSpells(1);
+            }
         }
 
         private void OnNewTurn(CoreMessage msg)
