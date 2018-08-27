@@ -41,7 +41,7 @@
     <Compile Include="CardType.cs" />
     <Compile Include="DuelPhase.cs" />
     <Compile Include="GameMessage.cs" />
-    <Compile Include="LinkMarker.cs" />
+    <Compile Include="CardLinkMarker.cs" />
     <Compile Include="Query.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
