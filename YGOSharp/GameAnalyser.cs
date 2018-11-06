@@ -15,6 +15,9 @@ namespace YGOSharp
 
         public int Analyse(GameMessage msg, BinaryReader reader, byte[] raw)
         {
+#if DEBUG
+            Console.Error.WriteLine(msg);
+#endif
             CoreMessage cmsg = new CoreMessage(msg, reader, raw);
             switch (msg)
             {
@@ -335,7 +338,7 @@ namespace YGOSharp
         private void OnSelectEffectYn(CoreMessage msg)
         {
             int player = msg.Reader.ReadByte();
-            msg.Reader.ReadBytes(12);
+            msg.Reader.ReadBytes(13);
             Game.WaitForResponse(player);
             SendToPlayer(msg, player);
         }
