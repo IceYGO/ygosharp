@@ -1,6 +1,6 @@
 ﻿namespace YGOSharp.OCGWrapper.Enums
 {
-    public enum LinkMarker
+    public enum CardLinkMarker
     {
         BottomLeft = 0x01,
         Bottom = 0x02,
