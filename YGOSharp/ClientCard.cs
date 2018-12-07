@@ -92,9 +92,7 @@ namespace YGOSharp
             }
             if ((flag & (int)Query.Owner) != 0)
                 reader.ReadInt32();
-            if ((flag & (int)Query.IsDisabled) != 0)
-                reader.ReadInt32();
-            if ((flag & (int)Query.IsPublic) != 0)
+            if ((flag & (int)Query.Status) != 0)
                 reader.ReadInt32();
             if ((flag & (int)Query.LScale) != 0)
                 reader.ReadInt32();
