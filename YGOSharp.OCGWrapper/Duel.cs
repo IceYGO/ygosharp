@@ -38,7 +38,7 @@ namespace YGOSharp.OCGWrapper
 
         public void AddCard(int cardId, int owner, CardLocation location)
         {
-            Api.new_card(_duelPtr, (uint)cardId, (byte)owner, (byte)owner, (byte)location, 0, 0);
+            Api.new_card(_duelPtr, (uint)cardId, (byte)owner, (byte)owner, (byte)location, 0, (byte)CardPosition.FaceDownDefence);
         }
 
         public void AddTagCard(int cardId, int owner, CardLocation location)
