@@ -662,6 +662,7 @@ namespace YGOSharp
 
             BinaryWriter packet = GamePacketFactory.Create(GameMessage.Start);
             packet.Write((byte)0);
+            packet.Write((byte)MasterRule);
             packet.Write(StartLp);
             packet.Write(StartLp);
             packet.Write((short)_duel.QueryFieldCount(0, CardLocation.Deck));
@@ -1165,6 +1166,7 @@ namespace YGOSharp
         {
             BinaryWriter packet = GamePacketFactory.Create(GameMessage.Start);
             packet.Write((byte)0x10);
+            packet.Write((byte)MasterRule);
             packet.Write(LifePoints[0]);
             packet.Write(LifePoints[1]);
             packet.Write((short)0); // deck
