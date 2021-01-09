@@ -10,6 +10,8 @@
         Removed = 0x20,
         Extra = 0x40,
         Overlay = 0x80,
-        Onfield = 0x0C
+        Onfield = 0x0C,
+        FieldZone = 0x100,
+        PendulumZone = 0x200
     }
 }
